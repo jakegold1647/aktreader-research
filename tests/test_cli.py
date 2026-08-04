@@ -63,3 +63,51 @@ def test_prompt_verify_and_canonical_label_validation_are_machine_readable(
     assert labels["labels"][0]["schema_kind"] == "canonical"
     assert labels["labels"][0]["quality_metrics"]["groundedness"]["violation_count"] == 0
     assert Path(labels["labels"][0]["path"]) == label_path
+
+
+def test_label_validate_report_surveys_instead_of_stopping(tmp_path: Path, capsys) -> None:
+    source_path = PROJECT_ROOT / "labels" / "readerB" / "serock-1890-death-1.json"
+    payload = json.loads(source_path.read_text(encoding="utf-8"))
+    payload["observations"] = {
+        "principal.age": payload["observations"]["principal.age"]
+    }
+    grounded_path = tmp_path / "grounded-label.json"
+    grounded_path.write_text(json.dumps(payload, ensure_ascii=False), encoding="utf-8")
+    ungrounded_path = PROJECT_ROOT / "labels" / "readerA" / "serock-1877-birth-1.json"
+
+    exit_code = main(
+        ["label-validate", "--report", str(grounded_path), str(ungrounded_path)]
+    )
+    report = json.loads(capsys.readouterr().out)
+
+    assert exit_code == 2
+    assert report["status"] == "FAIL"
+    assert report["count"] == 2
+    assert report["failing_count"] == 1
+    by_status = {entry["status"]: entry for entry in report["labels"]}
+    assert by_status["GROUNDED"]["violations"] == []
+    ungrounded = by_status["UNGROUNDED"]
+    assert ungrounded["record_id"] == "serock-1877-birth-1"
+    assert any(
+        violation["code"] == "PRESENT_RU_ORIGINAL_SCRIPT_HAS_NO_CYRILLIC"
+        for violation in ungrounded["violations"]
+    )
+
+
+def test_label_validate_report_passes_when_every_label_is_grounded(
+    tmp_path: Path, capsys
+) -> None:
+    source_path = PROJECT_ROOT / "labels" / "readerB" / "serock-1890-death-1.json"
+    payload = json.loads(source_path.read_text(encoding="utf-8"))
+    payload["observations"] = {
+        "principal.age": payload["observations"]["principal.age"]
+    }
+    grounded_path = tmp_path / "grounded-label.json"
+    grounded_path.write_text(json.dumps(payload, ensure_ascii=False), encoding="utf-8")
+
+    exit_code = main(["label-validate", "--report", str(grounded_path)])
+    report = json.loads(capsys.readouterr().out)
+
+    assert exit_code == 0
+    assert report["status"] == "PASS"
+    assert report["failing_count"] == 0

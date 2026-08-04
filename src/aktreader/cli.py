@@ -38,10 +38,12 @@ from aktreader.consensus import merge_labels
 from aktreader.consensus_record import build_consensus_record, write_consensus_record
 from aktreader.evaluation import evaluate_predictions, load_prediction_records
 from aktreader.grounding import (
+    grounding_findings,
     load_grounded_reader_label,
     paired_quality_metrics,
     validate_cross_reader_grounding,
 )
+from aktreader.labels import LabelValidationError, load_reader_label
 from aktreader.local_reader import LocalReader, LocalReaderError
 from aktreader.prompt import verify_reader_prompt
 from aktreader.validators.dates import validate_dates
@@ -78,6 +80,14 @@ def build_parser() -> argparse.ArgumentParser:
         "label-validate", help="validate external blind-reader label JSON files"
     )
     labels.add_argument("labels", nargs="+", type=Path)
+    labels.add_argument(
+        "--report",
+        action="store_true",
+        help=(
+            "survey every label instead of stopping at the first ungrounded one; "
+            "still exits non-zero when any label fails the grounded gate"
+        ),
+    )
 
     consensus = subparsers.add_parser(
         "consensus-merge",
@@ -214,6 +224,8 @@ def _command_prompt_verify(args: argparse.Namespace) -> int:
 
 
 def _command_label_validate(args: argparse.Namespace) -> int:
+    if getattr(args, "report", False):
+        return _label_validate_report(args)
     results = []
     for raw_path in args.labels:
         path = local_input_path(raw_path, role="reader label")
@@ -235,6 +247,51 @@ def _command_label_validate(args: argparse.Namespace) -> int:
         )
     _emit_json({"status": "PASS", "labels": results, "count": len(results)})
     return 0
+
+
+def _label_validate_report(args: argparse.Namespace) -> int:
+    """Survey labels without stopping at the first failure; never weaken the gate."""
+    results = []
+    failing = 0
+    for raw_path in args.labels:
+        path = local_input_path(raw_path, role="reader label")
+        if not path.is_file():
+            raise CliConfigurationError(f"reader label is not a file: {path}")
+        try:
+            label = load_reader_label(path)
+        except LabelValidationError as error:
+            failing += 1
+            results.append(
+                {"path": str(path), "status": "PARSE_FAIL", "error": str(error)}
+            )
+            continue
+        findings = grounding_findings(label)
+        if findings:
+            failing += 1
+        results.append(
+            {
+                "path": str(path),
+                "status": "UNGROUNDED" if findings else "GROUNDED",
+                "label_id": label.label_id,
+                "record_id": label.record_id,
+                "reader_id": label.reader_id,
+                "schema_kind": label.schema_kind,
+                "violations": [
+                    {"code": item.code, "field_paths": list(item.field_paths)}
+                    for item in findings
+                ],
+                "quality_metrics": paired_quality_metrics((label,)),
+            }
+        )
+    _emit_json(
+        {
+            "status": "PASS" if failing == 0 else "FAIL",
+            "labels": results,
+            "count": len(results),
+            "failing_count": failing,
+        }
+    )
+    return 0 if failing == 0 else 2
 
 
 def _command_consensus_merge(args: argparse.Namespace) -> int:
