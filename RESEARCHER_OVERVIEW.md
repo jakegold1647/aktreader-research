@@ -41,7 +41,7 @@ The gold corpus is reserved for evaluation. Archive scans are not redistributed.
 
 The public snapshot is software-complete enough for inspection, schema work, evaluation design, and researcher collaboration. Its local historical-handwriting baseline is explicitly **not run**. The project therefore does not yet support claims such as “X% accurate on nineteenth-century registers.” Those claims are a research milestone, not a marketing assumption.
 
-From a clean clone, the public snapshot currently verifies with 204 passing tests and builds as a Python source distribution and wheel. These checks establish repository integrity; they do not substitute for an independent handwriting benchmark.
+From a clean clone, the public snapshot verifies with a fully passing test suite (run `python -m pytest`; continuous integration enforces this on every push) and builds as a Python source distribution and wheel. These checks establish repository integrity; they do not substitute for an independent handwriting benchmark.
 
 ## What collaboration would be useful
 
