@@ -38,5 +38,6 @@ Pull requests should state:
 4. whether benchmark comparability changes; and
 5. whether the change touches privacy, consent, or training/evaluation isolation.
 
-The repository currently has no project license. Contributions cannot be accepted for reuse
-until Jake selects and adds the project license.
+Code contributions are accepted under the MIT License; transcription and derived-record
+contributions fall under CC BY 4.0 as described in [LICENSE](LICENSE) and
+[DATA_GOVERNANCE.md](DATA_GOVERNANCE.md).
