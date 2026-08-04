@@ -102,7 +102,8 @@ wrong-but-CONFIDENT is correctly `N/A (0/0)`, not a passing zero.
 research-note-derived corpus. The gold-attestation re-audit found **0/36** acts with complete
 per-field image references and dated human attestations. The 1.30% filiation result stands as the
 recorded before-picture, but it is not publication-grade image-verified benchmark accuracy. See
-`docs/audits/gold-attestation-audit-2026-07-29.md`.
+`docs/audits/gold-attestation-audit-2026-07-29.md` (internal audit record; not published in
+this repository).
 
 For future inference, the reduced schema now forbids the literal scalar placeholders `unknown`,
 `unclear`, `n/a`, and `none` case-insensitively, forcing typed absence into the non-present
@@ -188,7 +189,8 @@ stored format was less evidentiary: it omitted continuous transcriptions, so eve
 failed transcription support. Reader B's canonical format carried transcriptions and therefore
 scored 66.3%-90.0% grounded across waves 001-004, despite the later wave-005 fabrication finding.
 The guards measure recorded evidence, not factual luck. Full counts and violation classes are in
-the [groundedness retro-audit](audits/grounding-retro-audit-2026-07-29.md).
+the groundedness retro-audit, `docs/audits/grounding-retro-audit-2026-07-29.md` (internal
+audit record; not published in this repository).
 
 ### Gold is a separate evidence class
 
@@ -199,7 +201,8 @@ that contract, the stored corpus contains **0 contract-valid attestations, 0 fie
 directly from images, and 0/36 fully image-verified benchmark-eligible acts**. Three acts were
 verified in a 28 July human packet, but their attestations have not been materialized into the
 stored gold records, so the audit does not infer or backfill them. See the
-[gold attestation audit](audits/gold-attestation-audit-2026-07-29.md).
+gold attestation audit, `docs/audits/gold-attestation-audit-2026-07-29.md` (internal audit
+record; not published in this repository).
 
 This is why the baseline's **1/77 (1.30%)** filiation result is retained as a research-derived
 before-picture but must not be described as publication-grade image-verified accuracy.
