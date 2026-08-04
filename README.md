@@ -23,6 +23,8 @@ The project does not claim transcription authority or historical truth. It produ
 
 The initial pilot concerns civil registers from partitioned Poland. The gold records are evaluation-only; they are not training data and are not presented as a population-level historical reconstruction. The repository records source locations and artifact hashes where available, but does not redistribute source scans.
 
+For a concise project brief to share with researchers, see [Researcher overview](RESEARCHER_OVERVIEW.md).
+
 Read [data governance](DATA_GOVERNANCE.md), [reproducibility notes](REPRODUCIBILITY.md), the [architecture](docs/architecture.md), and the [evaluation report](docs/p2-evaluation.md) before using outputs in research.
 
 ## Install and verify
