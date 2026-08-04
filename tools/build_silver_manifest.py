@@ -66,7 +66,6 @@ def build_manifest() -> dict[str, Any]:
     for act_no in range(1, 6):
         wave = 1 if act_no <= 2 else 2
         provenance = _provenance(act_no, wave)
-        consensus = provenance["consensus_document"]
         records.append(
             {
                 "record_id": f"serock-1890-death-{act_no}",

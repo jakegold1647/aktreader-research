@@ -1,7 +1,7 @@
 import json
 from pathlib import Path
 
-from aktreader.gold import load_gold_records, sha256_file, validate_corpus
+from aktreader.gold import load_gold_records, validate_corpus
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -83,7 +83,10 @@ def test_recorded_source_and_artifact_checksums_are_well_formed() -> None:
         artifact = record["artifact"]
         assert provenance["source_note"]
         assert len(provenance["source_note_sha256"]) == 64
-        assert all(character in "0123456789abcdef" for character in provenance["source_note_sha256"])
+        assert all(
+            character in "0123456789abcdef"
+            for character in provenance["source_note_sha256"]
+        )
         assert artifact["status"] in {"LOCAL", "NOT_LOCALIZED"}
         if artifact["status"] == "LOCAL":
             assert len(artifact["sha256"]) == 64
