@@ -22,6 +22,24 @@ from types import MappingProxyType
 from typing import Any
 
 AUTHORITY_WARNING = "extraction is not authority — verify against the scan"
+_DASH_RE = re.compile(r"[-‐‑‒–—―]")
+_WARNING_SPACE_RE = re.compile(r"\s+")
+
+
+def _authority_warning_matches(value: Any) -> bool:
+    """Accept the frozen warning regardless of dash typography.
+
+    Frozen wave-004 Reader A labels carry an ASCII hyphen where later labels use an
+    em dash.  The wording is the contract; the dash glyph is not.  Any other change
+    to the warning still fails closed.
+    """
+    if not isinstance(value, str):
+        return False
+
+    def _fold(text: str) -> str:
+        return _WARNING_SPACE_RE.sub(" ", _DASH_RE.sub("-", text)).strip()
+
+    return _fold(value) == _fold(AUTHORITY_WARNING)
 CANONICAL_SCHEMA_VERSION = "1.0.0"
 SUPPORTED_PROMPT_VERSIONS = frozenset({"1.0.0", "1.1.0", "1.2.0", "1.3.0", "1.4.0"})
 KNOWN_STALE_READER_A_PROMPT_SHA256 = (
@@ -282,7 +300,7 @@ def parse_canonical_reader_label(
         datetime.fromisoformat(created_at.replace("Z", "+00:00"))
     except ValueError as error:
         raise LabelValidationError("label.created_at: expected an ISO date-time") from error
-    if data["authority_warning"] != AUTHORITY_WARNING:
+    if not _authority_warning_matches(data["authority_warning"]):
         raise LabelValidationError("label.authority_warning: required warning changed")
 
     reader = _require_mapping(data["reader"], "label.reader")
@@ -646,7 +664,7 @@ def parse_legacy_reader_a(
     missing = required - set(data)
     if missing:
         raise LabelValidationError(f"legacy label: missing {sorted(missing)}")
-    if data["authority_warning"] != AUTHORITY_WARNING:
+    if not _authority_warning_matches(data["authority_warning"]):
         raise LabelValidationError("legacy label.authority_warning: required warning changed")
 
     reader = _require_mapping(data["reader"], "legacy.reader")

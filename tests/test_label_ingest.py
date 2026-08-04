@@ -190,3 +190,29 @@ def test_unrelated_missing_hash_legacy_labels_receive_no_external_erratum(
     assert label.prompt_sha256 is None
     assert label.provenance_errata == ()
     assert all("PROVENANCE_ERRATA" not in note for note in label.binding_notes)
+
+
+def test_wave_004_ascii_hyphen_authority_warning_is_accepted() -> None:
+    # Frozen wave-004 Reader A labels carry "-" where later labels use an em dash.
+    # The wording is the contract; dash typography must not reject frozen evidence.
+    label = load_reader_label(ROOT / "labels" / "readerA" / "serock-1890-death-41.json")
+
+    assert label.schema_kind == "legacy_reader_a"
+    assert label.record_id == "serock-1890-death-41"
+
+
+def test_reworded_authority_warning_still_fails_closed() -> None:
+    payload = _canonical_payload()
+    payload["authority_warning"] = "extraction is not authority - trust the extraction"
+
+    with pytest.raises(LabelValidationError, match="required warning changed"):
+        parse_canonical_reader_label(payload)
+
+
+def test_canonical_hyphen_variant_authority_warning_is_accepted() -> None:
+    payload = _canonical_payload()
+    payload["authority_warning"] = "extraction is not authority - verify against the scan"
+
+    label = parse_canonical_reader_label(payload)
+
+    assert label.record_id == "serock-1890-death-1"
