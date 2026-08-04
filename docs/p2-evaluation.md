@@ -1,6 +1,9 @@
 # P2 evaluation report
 
-**Status:** P2 gate accepted; Wave 001/002 diagnostics recorded; baseline addendum **NOT RUN**
+**Status:** P2 gate accepted; Wave 001/002 diagnostics recorded. The local baseline was
+subsequently executed and measured — see the
+[P2 local baseline addendum](p2-baseline-addendum.md). Sections below headed "NOT RUN"
+record the pre-run state as of the report date and are retained unedited.
 
 **Report date:** 2026-07-28
 
