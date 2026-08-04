@@ -17,7 +17,7 @@ The project does not claim transcription authority or historical truth. It produ
 - Archive scans or cropped images.
 - Raw reviewer traces, internal coordination records, or private operational history.
 - Hosted-model calls, API keys, automatic model downloads, archive scraping, or memorial-institution data.
-- A completed accuracy claim: the local historical-handwriting baseline remains **not run**.
+- A completed accuracy claim: the one measured local baseline is a deliberately weak research-derived before-picture, not validated accuracy — see the [P2 local baseline addendum](docs/p2-baseline-addendum.md).
 
 ## Research use
 

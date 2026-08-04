@@ -92,7 +92,9 @@ development RTX 5060 Ti 16 GB. A 24 GB quality profile uses Qwen3.6-27B Q4; Qwen
 smaller fallback. These choices remain provisional until the historical-handwriting baseline
 runs. The owner-cleared llama.cpp executable is verified as 10167 (`ee3d1b54c`), exit 0, SHA-256
 `5719892edd89da2ce31d2b9f5f9c53c0cf244ec92294792a7f59e150e6e9aca5`. The model/projector
-pair is locked by revision and checksum but absent from disk, so the baseline remains `NOT RUN`.
+pair is locked by revision and checksum; after the owner fetch, the 24-job baseline executed
+under the pinned `llama-mtmd-cli` frontend as recorded in the
+[P2 local baseline addendum](p2-baseline-addendum.md).
 AKTREADER made no operating-system security change.
 
 ## Resumable batch state machine
@@ -151,8 +153,10 @@ memorial-institution records.
 ## Phase boundaries
 
 - P1 is complete: 36 source-backed, evaluation-only records.
-- P2 implementation gate is accepted; the real LocalReader baseline is `NOT RUN` pending the
-  owner fetch of the exact checksum-locked model/projector pair. The runtime is verified.
+- P2 implementation gate is accepted; the first LocalReader baseline has been executed and
+  measured as a weak research-derived before-picture (see the
+  [P2 local baseline addendum](p2-baseline-addendum.md)). Publication-grade, image-attested
+  benchmarking remains open.
 - P3 acquisition and Pułtusk batch work remain blocked until the explicit terms and polite-pace
   gate is approved.
 - P4 adds variant proposals without changing literal names.

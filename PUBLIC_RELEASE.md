@@ -2,7 +2,7 @@
 
 This research edition is a clean public snapshot of AKT Reader. It includes the local extraction toolkit, schemas, curated evaluation corpus, anonymized reproducibility labels, and a runnable public test suite.
 
-It excludes private operational coordination, reviewer/session traces, source-scan crops, and private audit-dependent test cases. These exclusions do not change the project’s claim boundaries: the shipped local historical-handwriting baseline remains not run.
+It excludes private operational coordination, reviewer/session traces, source-scan crops, and private audit-dependent test cases. These exclusions do not change the project’s claim boundaries: no publication-grade handwriting accuracy claim exists. The one measured local baseline run is recorded as a weak research-derived before-picture in [the P2 local baseline addendum](docs/p2-baseline-addendum.md).
 
 Verification for the initial snapshot (commit `b050856`):
 

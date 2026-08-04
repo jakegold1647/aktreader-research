@@ -6,8 +6,12 @@ the application.
 
 ## Current execution status
 
-The P2 LocalReader baseline is **NOT RUN**. All locked runtime/model artifacts are present and
-`reader-inspect` verifies their hashes without invoking inference.
+The first P2 LocalReader baseline has been executed and measured: 20/24 jobs succeeded and the
+corrected filiation result was 1/77 fields exact, a weak research-derived before-picture, not
+validated accuracy (see the [P2 local baseline addendum](p2-baseline-addendum.md)). On the
+owner machine the locked runtime/model artifacts are present and `reader-inspect` verifies
+their hashes without invoking inference; a fresh clone fails closed at the same check because
+those artifacts are owner-provisioned and never ship with the repository.
 
 Measured probes separated the frontend failure from the grammar engine:
 
