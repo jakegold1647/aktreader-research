@@ -44,6 +44,11 @@ and each complete excerpt occurs in the transcription after Unicode NFC and whit
 normalization only. Numeric/symbol observations must include enough adjacent inked wording to
 satisfy the Russian-script rule.
 
+One application of this contract is currently an open maintainer question: the frozen
+wave-006 Reader A labels fail the Cyrillic gate on margin numerals and one Latin-script
+autograph. The failure inventory and the two permitted resolution paths are recorded in
+[the wave-006 grounding question](wave-006-grounding-question.md); no path has been chosen.
+
 Standard JSON Schema enforces the structural requirements. Both v1.4 schemas also declare
 `x-aktreader-grounding-contract: 1.0.0`; AKTREADER's local schema validator executes that
 declared cross-field contract and rejects substring/Cyrillic failures. This is not a documentary
