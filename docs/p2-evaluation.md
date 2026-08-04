@@ -245,6 +245,13 @@ Set-Location E:\DNA\Project_RegisterReader
   .\labels\readerB\serock-1890-death-2.json
 ```
 
+Since the v1.4 groundedness gate landed, this command fails closed (exit code 2) on the
+frozen Wave 001 labels: they pre-date the continuous-transcription contract, and the gate
+does not grandfather them. That failure is the documented behavior, not a regression. To
+survey the grounding status of frozen labels without stopping at the first violation, pass
+`--report`; it emits per-label status, violation codes, and coverage/groundedness metrics,
+and still exits non-zero when any label fails the gate.
+
 ### Inspect and run the locked scan-backed baseline after the owner fetch
 
 The configuration and manifest are committed at
