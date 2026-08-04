@@ -278,7 +278,7 @@ backend; nothing may be architected so that only an API backend can support it.
 
 ## 13. DUAL-READER GOLD FACTORY (28 Jul 2026, Jake) — two frontier models, side by side
 **Amendment to §3's multi-pass protocol: the two independent passes come from TWO DIFFERENT
-VENDORS' frontier models (e.g., a Reader A-family model and a GPT-family model), same prompt,
+VENDORS' frontier models (e.g., a reader-a-family model and a GPT-family model), same prompt,
 neither seeing the other's output.** Cross-vendor agreement is stronger evidence than
 same-model-twice (uncorrelated failure modes); cross-vendor disagreement auto-generates the
 [unclear: X/Y] candidates.
@@ -302,7 +302,7 @@ Supersedes the API-backend portions of §12/§13's bootstrap plan. **No API keys
   everything is indexed, at whatever speed the hardware gives. Checkpointed, interruptible,
   no cloud dependency, no account, no key. That IS the product.
 - **Training labels come from the builder's own AI subscriptions, not APIs**: the two
-  frontier assistants (Reader A-family and GPT-family sessions) each read batches of scans
+  frontier assistants (reader-a-family and GPT-family sessions) each read batches of scans
   interactively/headlessly under their plans and emit schema-conformant extractions. The §13
   dual-reader consensus logic applies unchanged — the two subscription readers are the two
   blind passes. Throughput is bounded by plan limits; the factory runs in recurring batches

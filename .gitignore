@@ -37,3 +37,11 @@ Thumbs.db
 
 # local-only: invalid/superseded generated packets, not for distribution
 tmp/
+# Private operational artifacts intentionally excluded from the research edition.
+labels/readerB/superseded/
+tests/test_gold_attestation_audit.py
+tests/test_p2_addendum_protocol.py
+tests/test_retro_grounding_audit.py
+tests/test_silver_manifest.py
+tests/test_training_export.py
+tests/test_wave006_freeze.py

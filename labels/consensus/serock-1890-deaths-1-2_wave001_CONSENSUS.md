@@ -1,6 +1,6 @@
 # CONSENSUS MERGE — wave 001: Serock 1890 deaths, acts 1–2
 Merged 28 Jul 2026 by the coordinating session (consensus stage — blindness no longer applies).
-Reader A = reader-a-fable-5 (pilot-#0 labels, ad-hoc prompt — provenance asymmetry noted).
+Reader A = reader-a (pilot-#0 labels, ad-hoc prompt — provenance asymmetry noted).
 Reader B = gpt-5.6 sol-ultra (prompt v1.0.0, full schema, bboxes, artifact sha256).
 **Sol's label format is adopted as the factory standard going forward — it is strictly better
 (act-region bboxes, artifact hashes, dual-date objects, typed observation states).**

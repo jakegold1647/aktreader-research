@@ -1,0 +1,17 @@
+cff-version: 1.2.0
+title: "AKT Reader Research Edition"
+message: "If you use AKT Reader, please cite this software and the specific release or commit SHA."
+type: software
+authors:
+  - family-names: Goldstein
+    given-names: Jacob
+license: MIT
+repository-code: "https://github.com/jakegold1647/aktreader-research"
+abstract: "Local, uncertainty-aware extraction and evidence tooling for historical civil-register acts in Russian Cyrillic and Polish."
+keywords:
+  - historical records
+  - handwritten text recognition
+  - Cyrillic
+  - genealogy
+  - provenance
+  - uncertainty

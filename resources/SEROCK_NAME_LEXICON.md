@@ -76,7 +76,7 @@ Weksler (line-break phantom, W2 act 6) · Majkowski-as-male-deceased (W3 act 39)
 
 | Normalized | Cluster (page-forms ↔ kin forms) | Attestations |
 |---|---|---|
-| Bejla / Bajla | Бейля · Bajla · Beila/Balche (ONO) | W3 act 34 (Bejla Miara); JRI B-37/1886 Bajla Goldsztejn; martyrs | 
+| Bejla / Bajla | Бейля · Bajla · Beila/Balche (ONO) | W3 act 34 (Bejla Miara); JRI B-37/1886 Bajla Goldsztejn; martyrs |
 | Josek / Iosek | Іосекъ · Josek (Latin sig) · Iosif/Иосиф refuted · ↔ Yosef/Joseph | W2 act 3 · W3 act 39 declarant + "Josek Rubinsztajn" signature · Josek Aron G. (decree) |
 | Ruchla | Рухля · ↔ Rachel/Rochl | W1 act 1 · W3 act 39 · Ruchla née Miara (1b) |
 | Majer / Meir | Маеръ · Меер · Majer | W3 act 37 · Majer Goldsztejn (1b) · Meir Kanarek (memoir, 6) |

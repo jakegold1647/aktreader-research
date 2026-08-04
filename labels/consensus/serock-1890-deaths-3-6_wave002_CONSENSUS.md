@@ -1,6 +1,6 @@
 # CONSENSUS MERGE — wave 002: Serock 1890 deaths, acts 3–6
 Merged 28 Jul 2026 by the coordinating session (consensus stage — blindness no longer applies).
-Reader A = reader-a-fable-5, prompt v1.0.0 (hash field stale — see PROVENANCE_ERRATA, wave-001 doc §RESOLVED).
+Reader A = reader-a, prompt v1.0.0 (hash field stale — see PROVENANCE_ERRATA, wave-001 doc §RESOLVED).
 Reader B = gpt-5.6 sol-ultra, prompt v1.0.0 sha256 88e56abd…, frozen commit 4839ac2.
 Artifact: Serock_1890_deaths_03-06.jpg (sha256 5636dbdf…, per Reader B; two-page spread,
 acts 3/4 left top/bottom, 5/6 right top/bottom).

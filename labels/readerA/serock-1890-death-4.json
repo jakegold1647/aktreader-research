@@ -1,5 +1,5 @@
 {
-  "reader": {"identity": "reader-a-fable-5 (subscription session, Reader A)", "blind": true, "date": "2026-07-28",
+  "reader": {"identity": "reader-a (subscription session, Reader A)", "blind": true, "date": "2026-07-28",
              "prompt_version": "1.0.0", "prompt_sha256": "A2E6C50CA84A2E0141DFC785680A79429372E54E882120B6D908CEFDAD110FE5"},
   "artifact": {"path": "E:\\DNA\\Decode_Package\\01_Cyrillic_Serock\\Serock_1890_deaths_03-06.jpg", "position": "left page, lower act (No.4)"},
   "register": {"town": "Serock (посадъ Сероцкъ)", "year": 1890, "act_type": "death", "act_no": 4, "language": "ru", "clerk_year_proxy": "serock-1890"},

@@ -30,7 +30,7 @@ KNOWN_STALE_READER_A_PROMPT_SHA256 = (
 CANONICAL_READER_PROMPT_V1_SHA256 = (
     "88e56abd110b1f206a2d4cf0d699fbd449e667ea810ae1854a0c6a8d63269d82"
 )
-KNOWN_READER_A_IDENTITY = "reader-a-fable-5 (subscription session, Reader A)"
+KNOWN_READER_A_IDENTITY = "reader-a (subscription session, Reader A)"
 KNOWN_READER_A_DATE = "2026-07-28"
 PROVENANCE_ERRATA_SOURCE = "labels/consensus/FOR_SOL_wave002_brief.md#1-prompt-hash-drift-resolved"
 CANONICAL_TOP_LEVEL_KEYS = {

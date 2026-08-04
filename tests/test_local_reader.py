@@ -291,7 +291,7 @@ def test_local_command_is_deterministic_keyless_and_path_only(
     payload = _payload(brief)
     captured: dict[str, Any] = {}
     monkeypatch.setenv("OPENAI_API_KEY", "must-not-cross-process-boundary")
-    monkeypatch.setenv("PROVIDER_API_KEY", "must-not-cross-process-boundary")
+    monkeypatch.setenv("provider_API_KEY", "must-not-cross-process-boundary")
     _mock_success(monkeypatch, payload, captured)
 
     result = LocalReader(config).read(image, batch_brief=brief)
@@ -317,7 +317,7 @@ def test_local_command_is_deterministic_keyless_and_path_only(
     assert kwargs["shell"] is False
     assert kwargs["stdin"] is subprocess.DEVNULL
     assert "OPENAI_API_KEY" not in kwargs["env"]
-    assert "PROVIDER_API_KEY" not in kwargs["env"]
+    assert "provider_API_KEY" not in kwargs["env"]
     assert kwargs["env"]["HF_HUB_OFFLINE"] == "1"
     assert result.payload == _expected_label(brief, payload)
     assert result.stdout

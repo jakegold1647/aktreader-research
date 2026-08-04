@@ -1,6 +1,6 @@
-﻿# CONSENSUS MERGE — wave 003: Serock 1890 deaths, acts 30–40
+# CONSENSUS MERGE — wave 003: Serock 1890 deaths, acts 30–40
 Merged 28 Jul 2026 by the coordinating session (consensus stage — blindness no longer applies).
-Reader A = reader-a-fable-5, prompt v1.2.0 sha256 ea0e8375…, frozen commit 02725c6.
+Reader A = reader-a, prompt v1.2.0 sha256 ea0e8375…, frozen commit 02725c6.
 Reader B = gpt-5.6 sol-ultra, prompt v1.2.0 sha256 ea0e8375… (symmetric provenance this wave), frozen commit d679320.
 Artifacts: Serock_1890_deaths_{27-30, 31-34, 35-38, 39-42}.jpg — hashes in wave003/ARTIFACTS.txt,
 verified by both readers before reading. Two acts per page, margin numbers verified.
@@ -261,7 +261,7 @@ gold.
 
 ### Disposition of the resolved wave
 - Acts 30–40 promotions above → **silver** (2-of-3 machine consensus, training-eligible, never
-  eval) — ingest green-lights on the coordinator's messages_sol post, not before.
+  eval) — ingest proceeds only after the recorded review decision.
 - **Human gold sample nominations: acts 34 and 39** (identity-significant: act 34 is an
   externally corroborated lineage record; act 39 was a sex/name identity fork), joining act 6
   from wave 002. Act 40 additionally rides along wherever the sample is checked — its surname
@@ -279,4 +279,3 @@ promotion is WITHDRAWN to [unclear: Колтунъ/Ковшунъ] + occupation 
 кладбищный служитель]; field excluded from silver; added to the expert-review list alongside
 the act-40 surname deadlock. All other wave-003 promotions stand. Related minor flag: act-33
 declarant age now has three candidates (26/36/37) — targeted re-crop queued for a future pass.
-

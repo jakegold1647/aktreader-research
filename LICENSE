@@ -1,4 +1,4 @@
-﻿MIT License
+MIT License
 
 Copyright (c) 2026 Jacob Goldstein <jacobgoldstein.cs@gmail.com>
 
@@ -35,4 +35,3 @@ than a century old. No living person's data is included in this repository.
 
 Scan images themselves are not redistributed here; the repository records their
 SHA-256 hashes and their public source locations so results can be reproduced.
-
