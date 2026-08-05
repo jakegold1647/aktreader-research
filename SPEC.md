@@ -111,7 +111,9 @@ what every existing index drops.
   surname/town manglings — D-M soundex + transliteration + documented OCR manglings
   (SEROK/SEROCK, POUFTOUSK→Pułtusk, RULTUSK, PULSTUK, IAZHOMBEK→Jarząbek, KANALEK/KANAREK,
   "Serock u/Narwią", Sierck-les-Bains false-positive). Seed from this project's logged cases.
-- **P5 — Publish.** Open-source (AGPL or MIT — the owner decides), docs, HF space or simple web UI
+- **P5 — Publish.** Open-source (decided: MIT for code, CC BY 4.0 for original transcriptions
+  and derived records — see [LICENSE](LICENSE) and [DATA_GOVERNANCE.md](DATA_GOVERNANCE.md)),
+  docs, HF space or simple web UI
   for single-act upload, README telling the origin story honestly. Outreach AFTER release, by
   the owner personally: **Yad Vashem first (§9.3 — the thank-you, with the Serock pilot as the worked
   example)**, then JRI-Poland, PTG, LDVDF/DoJR (their terms require citing JRI-Poland where

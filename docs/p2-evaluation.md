@@ -120,7 +120,24 @@ ea0e83756698496414ba654de70805179829848f31acc644112b1e51f48e955f
 
 Frozen v1.1 remains auditable at commit `156393b`; it was not rewritten in place.
 
-## LocalReader baseline — NOT RUN
+## LocalReader baseline — NOT RUN (historical; superseded)
+
+> **This section no longer describes the current state.** It is preserved as
+> recorded, not rewritten in place, so the sequence stays auditable.
+>
+> The baseline has since been executed twice. From the
+> [P2 local baseline addendum](p2-baseline-addendum.md):
+>
+> - **2026-07-28** — first measured run: 20/24 jobs succeeded; corrected
+>   filiation field exact match **1/77 (1.30%)**.
+> - **2026-08-04** — re-run on `b10274` under the hardened contract: **3/24**
+>   completed, the placeholder ban and fail-closed groundedness gates having
+>   rejected output shapes the July contract still admitted.
+>
+> Neither run is publication-grade and neither is an accuracy claim: **0/36**
+> stored acts satisfy the image-attestation contract. The addendum is the
+> authority for every baseline figure; where it and this section disagree, the
+> addendum is correct.
 
 The owner resolved the former Smart App Control block as an owner-level OS-policy decision;
 standard Defender remains active. The coordinator verified the exact runtime, but the locked
@@ -216,7 +233,13 @@ wrong-but-CONFIDENT. A metric with no denominator cannot satisfy a target. An UN
 valid only when its alternatives preserve the unresolved evidence instead of silently choosing
 one reading.
 
-## Exact local CLI commands — documented, not launched
+## Exact local CLI commands — documented, not launched (historical; superseded)
+
+> As recorded, `batch-run` was unrun at the time of writing. It has since been
+> executed twice — 2026-07-28 and the 2026-08-04 `b10274` re-run — once the
+> owner-fetched GGUF files matched the committed hashes. See the
+> [P2 local baseline addendum](p2-baseline-addendum.md). The commands below are
+> still the correct invocations; only the "not launched" framing is out of date.
 
 The validation commands below were exercised; the inference command was not. `batch-run` remains
 unrun until the two owner-fetched GGUF files match the committed hashes. The runtime, prompt,

@@ -18,7 +18,7 @@ From a clean clone with only the development dependencies installed (`pip instal
 2. Lint: `python -m ruff check .`.
 3. Environment report: `python -m aktreader doctor`.
 4. Frozen-prompt verification: `python -m aktreader prompt-verify --root .` must report `PASS` with the digest pinned in `prompts/manifest.json` and `prompts/reader_prompt.sha256`.
-5. Label validation and grounding surveys over the committed frozen labels, for example `python -m aktreader label-validate --report labels/readerA/serock-1877-birth-1.json`. Frozen pre-contract and wave-006 labels fail the v1.4 gate by design; the non-zero exit is the documented behavior.
+5. Label validation and grounding surveys over the committed frozen labels, for example `python -m aktreader label-validate --report labels/readerA/serock-1877-birth-1.json` (`--report` is a flag; the labels are positional and more than one may be given). Expect exit 0 and `"status": "PASS"` — the canonical wave-006 Reader A labels return `GROUNDED` for all ten acts. Frozen pre-contract labels and the superseded July wave-006 pass (`labels/readerA/superseded/wave006-july-pass-ruled-compromised/`) still fail the v1.4 gate by design; for those, exit code 2 is the documented behavior.
 
 ## Where a fresh clone stops
 

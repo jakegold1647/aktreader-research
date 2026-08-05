@@ -160,4 +160,5 @@ memorial-institution records.
 - P3 acquisition and Pułtusk batch work remain blocked until the explicit terms and polite-pace
   gate is approved.
 - P4 adds variant proposals without changing literal names.
-- P5 selects the license and publication surface.
+- P5 settles the publication surface. The license half is already decided and in
+  force: MIT for code, CC BY 4.0 for original transcriptions and derived records.
