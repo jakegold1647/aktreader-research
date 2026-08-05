@@ -5,9 +5,18 @@ type: software
 authors:
   - family-names: Goldstein
     given-names: Jacob
+version: "0.1.0"
+date-released: "2026-08-04"
 license: MIT
 repository-code: "https://github.com/jakegold1647/aktreader-research"
-abstract: "Local, uncertainty-aware extraction and evidence tooling for historical civil-register acts in Russian Cyrillic and Polish."
+url: "https://github.com/jakegold1647/aktreader-research"
+abstract: >-
+  Local, uncertainty-aware extraction and evidence tooling for historical
+  civil-register acts in Russian Cyrillic and Polish. The research edition
+  publishes the schemas, the evaluation-only gold corpus, the blind
+  dual-reader consensus and adjudication method, and the measured local
+  baseline. It makes no validated handwriting-accuracy claim; the single
+  measured baseline is recorded as a weak research-derived before-picture.
 keywords:
   - historical records
   - handwritten text recognition
@@ -15,3 +24,4 @@ keywords:
   - genealogy
   - provenance
   - uncertainty
+  - research software
