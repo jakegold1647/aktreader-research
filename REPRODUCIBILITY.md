@@ -28,3 +28,15 @@ The P2 baseline itself cannot be reproduced from the repository alone. `python -
 - the 24 checksum-verified register scans referenced by absolute owner-local path in `examples/p2-baseline.jobs.json`; scans are private source material and are never distributed with this repository.
 
 A reproduction on new hardware must therefore re-provision those artifacts, verify them with `reader-inspect`, and only then run the committed manifest exactly as documented in the [evaluation report](docs/p2-evaluation.md). Supply only local paths to a model runtime and artifacts that you are authorized to use.
+
+### Human adjudication packets
+
+`python -m aktreader adjudicate --wave <id>` reads `human_check/waves/wave-<id>.json` and writes into `human_check/generated/wave-<id>`. That directory is owner-local and is not distributed: the packets embed source-pixel crops of register scans and named human answers. On a clean clone the command exits 2 against the absent wave specification, naming the path it wanted. **That is the intended fail-closed behavior, not a defect.** `human_check/` is gitignored so private review material cannot be committed by accident. See [docs/adjudication.md](docs/adjudication.md) for the packet format.
+
+### The training-readiness gate report is owner-local by construction
+
+`training/readiness-0001.json` is a frozen record of a gate evaluation measured on 2026-07-29. Its `input_pins` name the five inputs by **owner-local absolute path** (`E:\DNA\Project_RegisterReader\...`), so the report as committed cannot be re-derived from this clone. This is stated rather than corrected: rewriting the recorded paths would make a measurement that happened on one machine look portable, and a gate report that has been retouched is worth less than one that is honest about where it ran.
+
+Two of those five pinned inputs are not in this repository at all — the gold-attestation audit (see [docs/audits/README.md](docs/audits/README.md)) is an owner-held internal record, and the paths point at the sibling `aktreader` repository's working tree rather than at `aktreader-research`.
+
+What *is* portable is the verification mechanism: every pin carries a SHA-256, so each input can be confirmed by content rather than by location. A third party reproducing the gate would need the five pinned files, would verify each against its committed digest, and would then re-run the preflight; agreement with the recorded `status` and `metrics` is the check. Nothing about the gate's outcome depends on the paths themselves.
