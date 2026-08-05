@@ -1,27 +1,27 @@
 # AKTREADER — build spec for an autonomous coding agent
 *A register-reading machine: scan in → graded genealogical evidence out.*
 Spec written 28 Jul 2026 by Jacob Goldstein's research session. Build target: a solo AI coding
-agent (any capable model) working phase by phase. Jake reviews at each phase gate.
+agent (any capable model) working phase by phase. The owner reviews at each phase gate.
 
 ## ⚑ HANDOFF NOTE — read this first (you are a different model with zero prior context)
 - **You are being handed this cold.** Everything you need is in this file plus the on-disk paths
   it cites. Do not assume access to any prior conversation; where this spec says "the project,"
-  it means the genealogy research tree rooted at `E:\DNA\` on Jake's Windows 11 machine.
-- **Your workspace is `E:\DNA\Project_RegisterReader\` ONLY.** You may READ anywhere under
-  `E:\DNA\` (the gold-corpus source files in §2/P1, the scans in `Decode_Package\`), but you
-  WRITE only inside `Project_RegisterReader\`. Never modify, reorganize, or "clean up" anything
+  it means the owner's private genealogy research tree, referred to below as the research root.
+- **Your workspace is this repository ONLY.** You may READ anywhere under the
+  research root (the gold-corpus source files in §2/P1, the scans in `Decode_Package\`), but you
+  WRITE only inside this repository. Never modify, reorganize, or "clean up" anything
   outside it — the rest of the tree is an active research operation with its own rules.
 - **Environment:** Windows 11, PowerShell + Git Bash available, Python via `uv` preferred. Make
   this folder a standalone git repo (`git init` here; a parent repo may exist — do not touch it).
 - **Hard rules inherited from the research operation (non-negotiable):** no web scraping of any
   archive; no use of USHMM/Arolsen/Yad Vashem content in any training or bulk capacity; no
-  contacting any person or institution; no logins/consents on Jake's behalf; the sites
+  contacting any person or institution; no logins/consents on the owner's behalf; the sites
   gedmatch.com, ancestry.com, myheritage.com, 23andme.com are off-limits entirely. Web access is
   otherwise fine for docs/packages and the §1 landscape re-check.
 - **Source-of-truth discipline:** when building the gold corpus (P1), transcribe ONLY what the
   cited project files actually state — never invent or "complete" a field. Uncertainty is a
   first-class value in this project: `[unclear: X/Y]` beats a guess, always.
-- **Phase gates:** stop at the end of each phase (§5) and wait for Jake's review before
+- **Phase gates:** stop at the end of each phase (§5) and wait for the owner's review before
   continuing. Deliver each gate as: what was built, what was skipped and why, exact commands to
   run it.
 - A partial scaffold may exist from an aborted earlier start — inspect what's there, keep what
@@ -54,8 +54,8 @@ they cannot read.
 honesty, evaluation.**
 
 ## 2. The unfair advantage — the gold corpus already on disk
-`E:\DNA\Decode_Package\01_Cyrillic_Serock\` holds hundreds of Serock register scans, and the
-project holds **human+AI-verified readings** for dozens of acts (`Serock_Acts_Read.md`,
+The research root's `Decode_Package\01_Cyrillic_Serock\` holds hundreds of Serock register
+scans, and the project holds **human+AI-verified readings** for dozens of acts (`Serock_Acts_Read.md`,
 `Majer_Thirteen_Children.md`, `PoT_Fields_Transcribed.md`): act numbers, dates, filiations,
 witnesses with advancing ages, the works — including famously tricky cases (the double-registered
 death 25/1902 vs 6/1903; the skorowidze year-indexes; Goldfarb-vs-Goldsztejn trap entries).
@@ -98,11 +98,11 @@ what every existing index drops.
 ## 5. Phases & gates
 - **P0 — Landscape re-check + repo scaffold.** Re-verify §1 (PastPort esp.). Python, uv, tests.
 - **P1 — Gold corpus.** Parse the project's verified readings into `gold/*.json` (target ≥30
-  acts across birth/marriage/death, both languages). GATE: Jake spot-checks 5.
+  acts across birth/marriage/death, both languages). GATE: the owner spot-checks 5.
 - **P2 — MVP pipeline** on frontier-VLM Reader. Metric: **filiation exact-match ≥90% on gold,
   AND calibrated uncertainty — over-claiming (wrong-but-CONFIDENT) < 2%.** A wrong confident
   read is worse than ten honest [unclear]s. GATE: run on 10 never-read Decode_Package acts;
-  Jake compares against the scans.
+  The owner compares against the scans.
 - **P3 — Assist-the-search mode.** Batch-run the entire unread remainder of Decode_Package
   (incl. skorowidze index pages — cheap year-negatives); outputs feed the project's CSVs.
   This is where it pays rent immediately: **Bajla 1886/37, Jankel 1886/36, Chuna 1893/17 arrive
@@ -111,9 +111,9 @@ what every existing index drops.
   surname/town manglings — D-M soundex + transliteration + documented OCR manglings
   (SEROK/SEROCK, POUFTOUSK→Pułtusk, RULTUSK, PULSTUK, IAZHOMBEK→Jarząbek, KANALEK/KANAREK,
   "Serock u/Narwią", Sierck-les-Bains false-positive). Seed from this project's logged cases.
-- **P5 — Publish.** Open-source (AGPL or MIT — Jake decides), docs, HF space or simple web UI
+- **P5 — Publish.** Open-source (AGPL or MIT — the owner decides), docs, HF space or simple web UI
   for single-act upload, README telling the origin story honestly. Outreach AFTER release, by
-  Jake personally: **Yad Vashem first (§9.3 — the thank-you, with the Serock pilot as the worked
+  the owner personally: **Yad Vashem first (§9.3 — the thank-you, with the Serock pilot as the worked
   example)**, then JRI-Poland, PTG, LDVDF/DoJR (their terms require citing JRI-Poland where
   their data is used; the tool itself uses none of it).
 
@@ -135,7 +135,7 @@ scan" plus the artifact path, inheriting the project's evaluate-from-the-artifac
 ## 8. Success, stated plainly
 A descendant with no Russian and no Polish drops in the scan of the act that names their
 great-grandmother — and gets back her parents' names, honestly graded, with the one smudged
-word marked [unclear] instead of invented. First user: Jake. Second: Hélène's book. Then anyone.
+word marked [unclear] instead of invented. First user: the owner. Second: Hélène's book. Then anyone.
 
 ## 9. NEXT-GEN HORIZON (v2, after the P5 gate) — the questions no tool has ever answered
 These are not features; they are research capabilities that current tools structurally lack.
@@ -180,7 +180,7 @@ Warsaw ghetto and their names are recoverable from acts.
 Arolsen) data. Matching runs against the USER's own extractions plus manually-entered memorial
 record details, one lookup at a time, by a human. The deeper move: because the repo is open,
 **Yad Vashem can run it on their own side, against their own data, at full scale** — that is the
-form the thank-you takes. When P5 ships, Jake personally sends the repo to Yad Vashem's Hall of
+form the thank-you takes. When P5 ships, the owner personally sends the repo to Yad Vashem's Hall of
 Names / Shoah Names Recovery Project with the Serock pilot as the worked example.
 
 ### 9.4 Learned name-bridge — retire soundex
@@ -198,7 +198,7 @@ distinction as scored fields. If PastPort or Transkribus beat AKTREADER on it, t
 wins — that's the point of a benchmark, and it makes the "honest extraction" standard the thing
 tools compete on.
 
-## 10. PILOT DECISION (28 Jul 2026, Jake) — PUŁTUSK FIRST
+## 10. PILOT DECISION (28 Jul 2026, Jacob Goldstein) — PUŁTUSK FIRST
 **The first full use of AKTREADER is mapping the Jewish community of PUŁTUSK — and that map is
 the gift.** Rationale:
 - **The corpus exists.** AP Warszawa Oddział Pułtusk, fond 84 (Pułtusk Mokranowski/civil
@@ -214,17 +214,17 @@ the gift.** Rationale:
   reconstructed from its own registers, 1875–1935.
 **Corpus acquisition rules (gate before P3 batch work):** scans are fetched the way a researcher
 browses — through the front-end, politely paced, session-respectful, stopping at any CAPTCHA,
-login wall, or terms gate (log it and consult Jake). No parallel hammering, no mirror of the
+login wall, or terms gate (log it and consult the owner). No parallel hammering, no mirror of the
 site — a working corpus of the fond's images for personal research, acquired at human-polite
 pace over days, or read in place where download is not offered. If PTG/archive terms are found
-to forbid systematic saving, STOP and surface the finding — Jake decides (options include asking
-PTG for a research copy, which only Jake may do).
+to forbid systematic saving, STOP and surface the finding — the owner decides (options include asking
+PTG for a research copy, which only the owner may do).
 **Gold corpus stays Serock-seeded** (P1 unchanged — the verified readings are Serock acts);
 Pułtusk becomes the P3 batch target and the §9.2 graph's first town.
-**Publication framing:** clean, resume-grade open-source repo under Jake's GitHub — docs, tests,
+**Publication framing:** clean, resume-grade open-source repo under the owner's GitHub — docs, tests,
 benchmark, honest README. The repo IS the portfolio piece; the Yad Vashem letter is its cover.
 
-## 11. THE END GOAL, STATED PLAINLY (28 Jul 2026, Jake) — succession, not assistance
+## 11. THE END GOAL, STATED PLAINLY (28 Jul 2026, Jacob Goldstein) — succession, not assistance
 **AKTREADER's terminal purpose: let the last generation of human readers pass on without the
 skill dying with them.** Not a helper for experts — their successor. The paleography of
 pre-1918 chancery Cyrillic and old-Polish acts is no longer taught and will not be re-taught;
@@ -252,7 +252,7 @@ humans" is a measurable milestone in this domain, not marketing.
 **Reframe of the mitzvah:** the tool doesn't replace the readers — it lets them finish. Their
 corrections become the permanent inheritance. When the last of them stops, nothing stops.
 
-## 12. INDEPENDENCE ROADMAP (28 Jul 2026, Jake) — the Reader must not need APIs forever
+## 12. INDEPENDENCE ROADMAP (28 Jul 2026, Jacob Goldstein) — the Reader must not need APIs forever
 **End-state requirement: AKTREADER runs fully local — open-weights model, no API key, no
 vendor dependency.** A preservation tool with an API in its critical path is not preserved.
 Frontier APIs are scaffolding, used in exactly two bootstrap roles and then demoted:
@@ -276,7 +276,7 @@ Frontier APIs are scaffolding, used in exactly two bootstrap roles and then demo
 **Rule for the builder:** every Reader-dependent feature must work identically with the local
 backend; nothing may be architected so that only an API backend can support it.
 
-## 13. DUAL-READER GOLD FACTORY (28 Jul 2026, Jake) — two frontier models, side by side
+## 13. DUAL-READER GOLD FACTORY (28 Jul 2026, Jacob Goldstein) — two frontier models, side by side
 **Amendment to §3's multi-pass protocol: the two independent passes come from TWO DIFFERENT
 VENDORS' frontier models (e.g., a reader-a-family model and a GPT-family model), same prompt,
 neither seeing the other's output.** Cross-vendor agreement is stronger evidence than
@@ -294,7 +294,7 @@ same-model-twice (uncorrelated failure modes); cross-vendor disagreement auto-ge
   human-sampled output trains the LoRA'd local model; the duo then retires to the benchmark
   leaderboard.
 
-## 14. AMENDMENT (28 Jul 2026, Jake) — SUBSCRIPTION-SESSION LABEL FACTORY; THE APP IS LOCAL-ONLY FROM DAY ONE
+## 14. AMENDMENT (28 Jul 2026, Jacob Goldstein) — SUBSCRIPTION-SESSION LABEL FACTORY; THE APP IS LOCAL-ONLY FROM DAY ONE
 Supersedes the API-backend portions of §12/§13's bootstrap plan. **No API keys anywhere.**
 - **The application ships with exactly one Reader class: the LOCAL open-weights VLM**, sized
   for consumer hardware (a desktop GPU, or quantized down to capable laptops). The app's
@@ -321,7 +321,7 @@ Supersedes the API-backend portions of §12/§13's bootstrap plan. **No API keys
   plan). Frontier-model leaderboard comparisons become OPTIONAL nice-to-haves, not
   dependencies.
 
-### §13 amendment (28 Jul 2026, Jake): third-reader arbitration is the DEFAULT tie-break
+### §13 amendment (28 Jul 2026, Jacob Goldstein): third-reader arbitration is the DEFAULT tie-break
 Human arbitration of dual-reader disagreements is OPTIONAL, not required. Default resolution:
 a THIRD independent reader (different model or fresh session, shown only the disputed span and
 the pooled candidates, never the readers' identities or full labels) votes; 2-of-3 agreement

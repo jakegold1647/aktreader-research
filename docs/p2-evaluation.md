@@ -228,8 +228,8 @@ the P2 baseline configuration.
 From PowerShell:
 
 ```powershell
-Set-Location E:\DNA\Project_RegisterReader
-.\.venv\Scripts\python.exe -m aktreader prompt-verify --root E:\DNA\Project_RegisterReader
+Set-Location path\to\aktreader-research
+.\.venv\Scripts\python.exe -m aktreader prompt-verify --root .
 ```
 
 At the report date the pinned prompt was v1.2.0 and the reported digest was
@@ -242,7 +242,7 @@ now v1.4.0; `prompt-verify` checks against whatever digest `prompts/manifest.jso
 This validates Reader A and Reader B files for acts 1–2. It does not perform a consensus merge.
 
 ```powershell
-Set-Location E:\DNA\Project_RegisterReader
+Set-Location path\to\aktreader-research
 .\.venv\Scripts\python.exe -m aktreader label-validate `
   .\labels\readerA\serock-1890-death-1.json `
   .\labels\readerA\serock-1890-death-2.json `
@@ -267,10 +267,10 @@ act; a filename is never used to infer the target. Whole-page source regions are
 honestly where no verified crop exists.
 
 ```powershell
-Set-Location E:\DNA\Project_RegisterReader
+Set-Location path\to\aktreader-research
 $readerConfig = '.\examples\p2-baseline.local-reader.json'
 $batchManifest = '.\examples\p2-baseline.jobs.json'
-$runRoot = 'E:\DNA\Project_RegisterReader\runs\p2-local-baseline'
+$runRoot = '.\runs\p2-local-baseline'
 $checkpoint = Join-Path $runRoot 'checkpoint.sqlite3'
 $outputDir = Join-Path $runRoot 'predictions'
 
@@ -293,8 +293,8 @@ reissuing the identical command resumes from the SQLite checkpoint.
 Run this only after the output directory contains the completed baseline predictions:
 
 ```powershell
-Set-Location E:\DNA\Project_RegisterReader
-$runRoot = 'E:\DNA\Project_RegisterReader\runs\p2-local-baseline'
+Set-Location path\to\aktreader-research
+$runRoot = '.\runs\p2-local-baseline'
 $outputDir = Join-Path $runRoot 'predictions'
 $evaluation = Join-Path $runRoot 'serockbench.json'
 .\.venv\Scripts\python.exe -m aktreader eval `
