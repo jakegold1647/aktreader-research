@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Where to help
+    url: https://github.com/jakegold1647/aktreader-research/blob/main/docs/where-to-help.md
+    about: The work that is genuinely open to an outside contributor, and what is gated on private scans.
+  - name: Data governance and rights
+    url: https://github.com/jakegold1647/aktreader-research/blob/main/DATA_GOVERNANCE.md
+    about: Read before sending any transcription, image, or record. Restricted memorial-institution material is not accepted.

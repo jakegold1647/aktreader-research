@@ -4,6 +4,10 @@ AKTREADER treats provenance and uncertainty as product behavior. A contribution 
 when it merely produces plausible text; it must preserve the path from scan pixels to every
 assertion.
 
+Looking for something to pick up? [docs/where-to-help.md](docs/where-to-help.md)
+lists the work that is genuinely open to an outside contributor, and is honest
+about how much of the backlog is gated on private scans and owner-held artifacts.
+
 ## Before opening a change
 
 - Use Python 3.11 or newer in an isolated environment.

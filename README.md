@@ -56,6 +56,12 @@ python3 -m venv .venv
 
 The toolkit is intentionally local-first. Model binaries and weights are supplied and pinned by the researcher; AKT Reader does not download or contact models on its own.
 
+## Contributing
+
+[CONTRIBUTING.md](CONTRIBUTING.md) is the rules. [docs/where-to-help.md](docs/where-to-help.md) is the work: what is genuinely open to an outside contributor, and an honest account of how much of the backlog is gated on private scans and owner-held artifacts. The variant bridge is the best entry point — pure string work, real test data already in the repository, no scan or model access needed.
+
+Challenges to the evaluation methodology are treated as first-class contributions. A confidently wrong number is worse than no number.
+
 ## Citation
 
 If you use AKT Reader, cite the software record in [CITATION.cff](CITATION.cff) and identify the repository release and commit SHA used in your work. Cite the archival collection separately according to its own requirements.
