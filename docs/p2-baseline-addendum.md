@@ -5,7 +5,7 @@ under construction and is not publication-grade.
 
 **Recorded:** 2026-07-28
 
-**Updated:** 2026-07-29
+**Updated:** 2026-08-04
 
 This addendum records the measured “before” picture. It does not report a successful benchmark
 run and does not convert failed jobs into zero-valued metrics.
@@ -19,6 +19,7 @@ run and does not convert failed jobs into zero-valued metrics.
 | Did blind disagreement add safety value? | Yes: it intercepted multiple phantom-identity forks before gold, but those disputed-only catches are not an accuracy estimate. |
 | Did well-formed labels prove that a reader read the page? | No: wave 005 produced schema-valid fabricated fields when coverage was pressured without groundedness. |
 | What protocol follows from the evidence? | Blind reader -> fresh blind same-vendor verification -> adjudication packet -> human decision, with correlated blind spots explicitly retained as a limitation. |
+| What happened under the hardened contract? | The 2026-08-04 b10274 re-run completed **3/24**: the placeholder ban and fail-closed groundedness gates rejected output shapes the July contract still admitted. See the dated section below. |
 
 ## Measured failure matrix
 
@@ -111,6 +112,55 @@ oneOf branch. This changes the schema pin and runtime fingerprint; the completed
 not rebound. The hardened schema is pending its own grammar probe before any failure-only retry.
 A longer-act retry must likewise use a separately fingerprinted output budget so it cannot be
 silently mixed with the completed 8,192-token jobs.
+
+## 2026-08-04 re-run under llama.cpp b10274 and the hardened contract
+
+The 24-job manifest was re-run on 2026-08-04 under runtime b10274 `llama-mtmd-cli.exe`
+(runtime fingerprint `75d6bd23393951e72dc4b7ecb615a0ec19f29bc1d1d39f1eecc8c671bb99eba7`).
+This run differs from the July run in two coupled ways: a newer runtime build, and the
+hardened output contract that had been pending above — the schema now rejects literal
+scalar placeholders such as `unknown`, and the groundedness gates fail closed on
+LocalReader output. Because both changed together, the two runs are **not comparable as a
+build-sensitivity experiment**; the fingerprint change correctly forced every job to
+re-enter at retry zero rather than inherit July results.
+
+The re-run completed **3 SUCCEEDED / 21 FAILED**, with zero infrastructure errors:
+
+| Failure class | Count |
+|---|---:|
+| Groundedness-gate rejection | 9 |
+| Pinned-schema rejection (largely placeholder scalars) | 9 |
+| Unbalanced JSON in reader stdout | 2 |
+| Duplicate JSON key | 1 |
+
+Seventeen jobs that produced gate-passing output in July were rejected this time. Reading
+that as regression would be a category error: the placeholder-scalar and groundedness
+rejections are the hardened gates retroactively refusing exactly the output shapes the
+July contract still admitted — for example, `"value": "unknown"` marked `PRESENT`, which
+the July run accepted and the current schema forces into the typed-absence branch. The
+gates firing is the designed behavior, not noise. What the pairing does establish is
+narrower and still useful: gate outcomes are sensitive to the full pinned configuration
+(runtime build plus schema plus guard set), which is why every job fingerprint binds all
+of them and why metrics must never be compared across differing pins.
+
+The three surviving predictions were evaluated alone (report
+`serockbench-b10274-only.json`, retained with the run checkpoint; a mixed-runtime report
+over the July survivors also exists and is not valid under any single pin):
+
+| Metric | Result | Denominator |
+|---|---:|---:|
+| Prediction coverage | **8.33%** | 3/36 records |
+| Filiation field exact match | **0.00%** | 0/11 fields |
+| Filiation act exact match | **0.00%** | 0/3 acts |
+| Wrong-but-CONFIDENT rate | **N/A** | 0/0 CONFIDENT assertions |
+| PROBABLE exact calibration | **26.32%** | 5/19 scored assertions |
+| Observation-state accuracy | **100.00%** | 19/19 mapped observations |
+
+The interpretation is unchanged from July and sharpened: under the fully hardened
+contract, the pinned local model cannot reliably hold the output contract at all, and the
+P2 targets (at least 90% filiation exact match, below 2% wrong-but-CONFIDENT) remain far
+out of reach for this configuration. Wrong-but-CONFIDENT is again `N/A (0/0)`, never a
+passing zero. The gold-provenance limitation above applies to these numbers identically.
 
 ## Phantom identities intercepted by blind disagreement
 
