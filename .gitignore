@@ -38,6 +38,13 @@ Thumbs.db
 # local-only: invalid/superseded generated packets, not for distribution
 tmp/
 # Private operational artifacts intentionally excluded from the research edition.
+# Human adjudication inputs and generated packets. These carry source-pixel
+# crops of register scans and named human answers, so they are owner-local by
+# construction and must never be committed. `adjudicate` reads
+# human_check/waves/wave-<id>.json and writes human_check/generated/wave-<id>;
+# on a clean clone it exits 2 against the absent directory, which is the
+# intended fail-closed behavior. See docs/adjudication.md.
+human_check/
 labels/readerB/superseded/
 tests/test_gold_attestation_audit.py
 tests/test_p2_addendum_protocol.py

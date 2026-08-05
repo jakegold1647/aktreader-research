@@ -7,7 +7,16 @@ candidate) or **visual corroboration** (a field crop beside repeated occurrences
 index rows). Both modes show a plain-language claim, available anchors and structural checks,
 and the consequence of every choice.
 
+Its input is normally a consensus record produced by
+[`consensus-merge`](consensus-merge.md); the fields that command escalates as
+arbitration requests are what this one turns into questions.
+
 ## Build a packet
+
+`human_check/` is owner-local and gitignored — packets embed source-pixel crops
+and named human answers, so they are never distributed. On a clean clone
+`adjudicate` exits 2 against the absent wave specification, naming the path it
+wanted; that is the intended fail-closed behavior, not a defect.
 
 Prepare `human_check/waves/wave-003.json` under
 `schemas/adjudication-wave-1.0.0.schema.json`, then run:
