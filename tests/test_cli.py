@@ -73,7 +73,14 @@ def test_label_validate_report_surveys_instead_of_stopping(tmp_path: Path, capsy
     }
     grounded_path = tmp_path / "grounded-label.json"
     grounded_path.write_text(json.dumps(payload, ensure_ascii=False), encoding="utf-8")
-    ungrounded_path = PROJECT_ROOT / "labels" / "readerA" / "serock-1877-birth-1.json"
+    ungrounded_path = (
+        PROJECT_ROOT
+        / "labels"
+        / "readerA"
+        / "superseded"
+        / "wave006-july-pass-ruled-compromised"
+        / "serock-1877-birth-1.json"
+    )
 
     exit_code = main(
         ["label-validate", "--report", str(grounded_path), str(ungrounded_path)]

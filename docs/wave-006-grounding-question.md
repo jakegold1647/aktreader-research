@@ -1,6 +1,33 @@
 # Wave 006 grounding-gate question
 
-**Status: OPEN — awaiting maintainer decision. This document decides nothing.**
+**Status: RESOLVED BY SUPERSESSION (2026-08-04, same day) — with one narrow residual question below.**
+
+Resolution record. The eight frozen Reader A labels this brief examined were superseded the
+same day for reasons independent of this gate: a three-reader arbitration of wave 006 found
+the pass systematically unreliable (17 of 18 contested calls lost, including one act whose
+label described a family not present on the page). The pass was ruled compromised and moved
+to `labels/readerA/superseded/wave006-july-pass-ruled-compromised/`; a fresh blind pass is
+now the canonical Reader A evidence for acts 1-10.
+
+The replacement pass was then measured against this brief's exact gate:
+`label-validate --report` returns **GROUNDED for all ten canonical Reader A labels, status
+PASS** - each margin numeral quotes adjacent Cyrillic wording, as the contract's first
+clause always permitted. Neither resolution path below was needed for Reader A: the errata
+re-pass this brief called path 1 effectively occurred as the wave's own replacement pass,
+and it passed as stored.
+
+**Residual question (narrow, still a maintainer decision):** one live instance of the
+inherently-non-Cyrillic-ink case remains - the wave-006 Reader B label for act 2 records a
+PRESENT `signatures.note` whose ink is a Latin-script signature, the same physics as the
+act-6 autograph discussed below. Path 2's scoped contract amendment (or a one-field errata
+artifact) remains the choice for that class. It blocks nothing today: consensus for act 2
+entered through arbitration, and no CI gate in this repository fails on it.
+
+The original brief follows unchanged, as the record of the question as posed.
+
+---
+
+**Original status: OPEN — awaiting maintainer decision. This document decides nothing.**
 
 **Recorded:** 2026-08-04
 
