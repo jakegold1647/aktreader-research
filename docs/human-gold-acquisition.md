@@ -63,7 +63,8 @@ $env:PYTHONPATH = "src"
 python tools/build_human_qualification_packet.py
 ```
 
-Generated ZIPs and their receipt are placed in `training/qualification-0001/`. The builder
+Generated ZIPs and their receipt are placed in `training/qualification-0001/` (owner-local
+output; not published in this repository). The builder
 verifies source hashes, refuses any path under BulkData, includes no observations or machine
 labels, and fails rather than overwrite a non-empty packet directory.
 

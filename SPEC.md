@@ -1,6 +1,6 @@
 # AKTREADER — build spec for an autonomous coding agent
 *A register-reading machine: scan in → graded genealogical evidence out.*
-Spec written 28 Jul 2026 by Jake Goldstein's research session. Build target: a solo AI coding
+Spec written 28 Jul 2026 by Jacob Goldstein's research session. Build target: a solo AI coding
 agent (any capable model) working phase by phase. Jake reviews at each phase gate.
 
 ## ⚑ HANDOFF NOTE — read this first (you are a different model with zero prior context)

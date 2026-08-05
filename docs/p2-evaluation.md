@@ -220,7 +220,7 @@ one reading.
 
 The validation commands below were exercised; the inference command was not. `batch-run` remains
 unrun until the two owner-fetched GGUF files match the committed hashes. The runtime, prompt,
-schema, configuration, and 17 scan jobs are already concrete—there are no placeholder digests in
+schema, configuration, and 24 scan jobs are already concrete—there are no placeholder digests in
 the P2 baseline configuration.
 
 ### Verify prompt v1.2.0
@@ -232,8 +232,10 @@ Set-Location E:\DNA\Project_RegisterReader
 .\.venv\Scripts\python.exe -m aktreader prompt-verify --root E:\DNA\Project_RegisterReader
 ```
 
-The reported digest must be exactly
-`ea0e83756698496414ba654de70805179829848f31acc644112b1e51f48e955f`.
+At the report date the pinned prompt was v1.2.0 and the reported digest was
+`ea0e83756698496414ba654de70805179829848f31acc644112b1e51f48e955f`. The frozen prompt is
+now v1.4.0; `prompt-verify` checks against whatever digest `prompts/manifest.json` and
+`prompts/reader_prompt.sha256` currently pin, and must report `PASS`.
 
 ### Validate the four Wave 001 source labels
 
