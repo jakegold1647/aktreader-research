@@ -56,11 +56,15 @@ the Napoleonic act formula documented in `skills/napoleonic-act-formula.md`
 (register span 1874–1904). Additional attested date phrasings, with tests, are
 useful and require only the formula document.
 
-## 3. Document `consensus-merge`
+## 3. Check the CLI documentation against the code
 
-`python -m aktreader consensus-merge` is implemented (`src/aktreader/cli.py`) and
-mentioned in no document. Reading the implementation and writing it up accurately
-is a real contribution and an unusually good way to learn the label model.
+`consensus-merge` is now written up in
+[docs/consensus-merge.md](consensus-merge.md), reconstructed by reading
+`src/aktreader/cli.py` and `src/aktreader/consensus.py`. Checking that
+description against the implementation — and against the other commands' docs —
+is genuinely useful: a merge rule described slightly wrong is worse than one
+not described at all, because it gets trusted. Reading the label model closely
+enough to find such an error is also the fastest way to learn it.
 
 ## 4. Adversarial review of the evaluation protocol
 
