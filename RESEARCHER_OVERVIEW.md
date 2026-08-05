@@ -23,7 +23,7 @@ The repository provides:
 - local-reader boundaries that do not download models, call hosted APIs, or handle credentials;
 - reproducibility guidance and a public test suite.
 
-The project has a real development history: the public edition preserves 48 substantive commits from the working project after removing private operational material. The public history is scrubbed of reviewer-session traces, internal coordination, source crops, and provider-specific identifiers.
+The project has a real development history: the public edition preserves the substantive commit history of the working project after removing private operational material. The public history is scrubbed of reviewer-session traces, internal coordination, source crops, and provider-specific identifiers.
 
 ## Methodological commitments
 
@@ -65,6 +65,7 @@ The best first conversation is not a request to endorse the system. It is a requ
 - [Data governance](DATA_GOVERNANCE.md) — rights, privacy, and use boundaries
 - [Reproducibility notes](REPRODUCIBILITY.md) — what to record for a study
 - [Architecture](docs/architecture.md) — evidence model and pipeline boundaries
-- [Evaluation report](docs/p2-evaluation.md) — documented diagnostics and the unrun baseline
+- [Evaluation report](docs/p2-evaluation.md) — documented diagnostics and the measured local baseline
+- [P2 local baseline addendum](docs/p2-baseline-addendum.md) — the measured before-picture and its limits
 - [Citation record](CITATION.cff) — how to cite the software
 
