@@ -1,5 +1,10 @@
 # AKT Reader Research Edition
 
+[![CI](https://github.com/jakegold1647/aktreader-research/actions/workflows/ci.yml/badge.svg)](https://github.com/jakegold1647/aktreader-research/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/code-MIT-blue.svg)](LICENSE)
+[![Data: CC BY 4.0](https://img.shields.io/badge/data-CC%20BY%204.0-lightgrey.svg)](DATA_GOVERNANCE.md)
+[![Python 3.11+](https://img.shields.io/badge/python-3.11%2B-blue.svg)](pyproject.toml)
+
 AKT Reader is a local, evidence-first toolkit for extracting structured information from nineteenth-century civil-register acts written in Russian Cyrillic and Polish. It is designed for historical and genealogical research where uncertain readings must remain visible and traceable to the source record.
 
 The project does not claim transcription authority or historical truth. It produces reviewable evidence objects: structured fields, literal-script readings, confidence grades, explicit alternatives, and source-span provenance. Researchers should verify every material conclusion against the underlying record.
@@ -29,13 +34,24 @@ Read [data governance](DATA_GOVERNANCE.md), [reproducibility notes](REPRODUCIBIL
 
 ## Install and verify
 
-Python 3.10 or newer is supported.
+Python 3.11 or newer is required; CI runs 3.11 and 3.13 on Linux and Windows.
+
+Windows (PowerShell):
 
 ```powershell
 python -m venv .venv
 .\.venv\Scripts\python.exe -m pip install -e ".[dev]"
 .\.venv\Scripts\python.exe -m pytest
 .\.venv\Scripts\aktreader.exe doctor
+```
+
+Linux and macOS:
+
+```bash
+python3 -m venv .venv
+.venv/bin/python -m pip install -e ".[dev]"
+.venv/bin/python -m pytest
+.venv/bin/aktreader doctor
 ```
 
 The toolkit is intentionally local-first. Model binaries and weights are supplied and pinned by the researcher; AKT Reader does not download or contact models on its own.
