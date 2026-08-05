@@ -24,6 +24,16 @@ The project does not claim transcription authority or historical truth. It produ
 - Hosted-model calls, API keys, automatic model downloads, archive scraping, or memorial-institution data.
 - A completed accuracy claim: the one measured local baseline is a deliberately weak research-derived before-picture, not validated accuracy — see the [P2 local baseline addendum](docs/p2-baseline-addendum.md).
 
+## Related repositories
+
+- [`aktreader`](https://github.com/jakegold1647/aktreader) — the reader application this
+  repository evaluates: the local pipeline, CLI, and review tooling. The two repositories
+  have separate histories on purpose; that one ships the tool, this one holds the evidence
+  about how well it reads.
+- [`congress-poland-registers`](https://github.com/jakegold1647/congress-poland-registers) —
+  an independent open benchmark for handwritten Congress Poland vital records, under
+  construction. Its evaluation tooling is runnable today against a synthetic toy corpus.
+
 ## Research use
 
 The initial pilot concerns civil registers from partitioned Poland. The gold records are evaluation-only; they are not training data and are not presented as a population-level historical reconstruction. The repository records source locations and artifact hashes where available, but does not redistribute source scans.
