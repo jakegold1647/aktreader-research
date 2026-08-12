@@ -1,0 +1,142 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://aktreader.local/schemas/variant-batch-1.0.0.schema.json",
+  "title": "AKT Reader variant proposal batch",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "status",
+    "input_sha256",
+    "lexicon_sha256",
+    "relations_sha256",
+    "include_phonetic",
+    "row_count",
+    "proposal_count",
+    "relation_counts",
+    "rows",
+    "warning"
+  ],
+  "properties": {
+    "schema_version": {"const": "1.0.0"},
+    "status": {"const": "PROPOSAL_ONLY"},
+    "input_sha256": {"$ref": "#/$defs/sha256"},
+    "lexicon_sha256": {"$ref": "#/$defs/sha256"},
+    "relations_sha256": {"$ref": "#/$defs/sha256"},
+    "include_phonetic": {"type": "boolean"},
+    "row_count": {"type": "integer", "minimum": 1},
+    "proposal_count": {"type": "integer", "minimum": 0},
+    "relation_counts": {"$ref": "#/$defs/relationCounts"},
+    "rows": {
+      "type": "array",
+      "minItems": 1,
+      "items": {"$ref": "#/$defs/row"}
+    },
+    "warning": {"type": "string", "minLength": 1}
+  },
+  "$defs": {
+    "sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "entityType": {
+      "enum": ["surname", "given", "town"]
+    },
+    "relation": {
+      "enum": [
+        "DOCUMENTED_FORM",
+        "ATTESTED_VARIANT",
+        "PHONETIC_CANDIDATE",
+        "RULED_OUT"
+      ]
+    },
+    "relationCounts": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "DOCUMENTED_FORM",
+        "ATTESTED_VARIANT",
+        "PHONETIC_CANDIDATE",
+        "RULED_OUT"
+      ],
+      "properties": {
+        "DOCUMENTED_FORM": {"type": "integer", "minimum": 0},
+        "ATTESTED_VARIANT": {"type": "integer", "minimum": 0},
+        "PHONETIC_CANDIDATE": {"type": "integer", "minimum": 0},
+        "RULED_OUT": {"type": "integer", "minimum": 0}
+      }
+    },
+    "evidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["source_tier", "source_ref"],
+      "properties": {
+        "source_tier": {"type": "string", "minLength": 1},
+        "source_ref": {"type": "string", "minLength": 1}
+      }
+    },
+    "proposal": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "canonical_form",
+        "entity_type",
+        "form",
+        "relation",
+        "script",
+        "shared_codes",
+        "evidence"
+      ],
+      "properties": {
+        "canonical_form": {"type": "string", "minLength": 1},
+        "entity_type": {"$ref": "#/$defs/entityType"},
+        "form": {"type": "string", "minLength": 1},
+        "relation": {"$ref": "#/$defs/relation"},
+        "script": {"enum": ["latin", "cyrillic"]},
+        "shared_codes": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {"type": "string", "pattern": "^[0-9]{6}$"}
+        },
+        "evidence": {
+          "type": "array",
+          "minItems": 1,
+          "items": {"$ref": "#/$defs/evidence"}
+        }
+      }
+    },
+    "row": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "row_number",
+        "status",
+        "literal_input",
+        "literal_input_unchanged",
+        "entity_type",
+        "query_codes",
+        "counts",
+        "proposals"
+      ],
+      "properties": {
+        "id": {"type": "string", "minLength": 1},
+        "row_number": {"type": "integer", "minimum": 2},
+        "status": {"const": "PROPOSAL_ONLY"},
+        "literal_input": {"type": "string", "minLength": 1},
+        "literal_input_unchanged": {"const": true},
+        "entity_type": {"$ref": "#/$defs/entityType"},
+        "query_codes": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {"type": "string", "pattern": "^[0-9]{6}$"}
+        },
+        "counts": {"$ref": "#/$defs/relationCounts"},
+        "proposals": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/proposal"}
+        }
+      }
+    }
+  }
+}

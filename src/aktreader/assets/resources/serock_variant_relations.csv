@@ -1,0 +1,20 @@
+canonical_form,entity_type,form,relation,script,source_tier,source_ref
+Goldsztejn,surname,Goldsztajn,ATTESTED_VARIANT,latin,3,1947 decree (INF)
+Frydman,surname,Fridman,ATTESTED_VARIANT,latin,4,SURV survivor list
+Sterdyner,surname,Sterdiner,ATTESTED_VARIANT,latin,5,YZK p489 (glazier)
+Jarzabek,surname,IAZHOMBEK,ATTESTED_VARIANT,latin,3,ONO transliteration round-trip
+Kanarek,surname,KANALEK,RULED_OUT,latin,4,SURV near-miss (not Kanarek; b.1927 Pruszków)
+Herszfeld,surname,Gersz Weksler,RULED_OUT,latin,1,W2 act6 PHANTOM (line-break artifact)
+Makowska,surname,Лейбъ Майковскій,RULED_OUT,cyrillic,1,W3 act39 PHANTOM
+Psznek,surname,Пфлюгеръ,RULED_OUT,cyrillic,1,W2 arb#7 refuted
+Psznek,surname,Топеръ,RULED_OUT,cyrillic,1,W2 arb#8 refuted
+Auksztukalska,surname,Турецкій,RULED_OUT,cyrillic,1,W2 arb#4 refuted by Reader C (act3 declarant)
+Serock,town,Serok,ATTESTED_VARIANT,latin,ONO,skills/jewish-onomastics.md town-variant seeds
+Serock,town,Serotzk,ATTESTED_VARIANT,latin,ONO,skills/jewish-onomastics.md town-variant seeds
+Serock,town,Srotsk,ATTESTED_VARIANT,latin,ONO,skills/jewish-onomastics.md town-variant seeds
+Serock,town,Serock u/Narwią,ATTESTED_VARIANT,latin,ONO,skills/jewish-onomastics.md town-variant seeds
+Serock,town,Sierck-les-Bains,RULED_OUT,latin,ONO,skills/jewish-onomastics.md false friend
+Pułtusk,town,Pultusk,ATTESTED_VARIANT,latin,ONO,skills/jewish-onomastics.md town-variant seeds
+Pułtusk,town,POUFTOUSK,ATTESTED_VARIANT,latin,ONO,skills/jewish-onomastics.md town-variant seeds
+Pułtusk,town,RULTUSK,ATTESTED_VARIANT,latin,ONO,skills/jewish-onomastics.md town-variant seeds
+Pułtusk,town,PULSTUK,ATTESTED_VARIANT,latin,ONO,skills/jewish-onomastics.md town-variant seeds

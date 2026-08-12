@@ -68,9 +68,11 @@ Read [data governance](DATA_GOVERNANCE.md), [reproducibility notes](REPRODUCIBIL
 ## Install and verify
 
 Python 3.11 or newer is required; CI runs 3.11 and 3.13 on Linux and Windows.
-This is currently a source-checkout release: clone this repository and use the editable install
-below. Standalone wheels and source distributions are not published because several commands
-intentionally read versioned schemas, lexicons, and labels from the repository checkout.
+Clone the repository and use the editable install below for the complete reproducibility corpus.
+The development package also builds a self-contained wheel for commands that rely on the nine
+bundled runtime schemas and lexicons. Gold records, frozen labels, prompt-source files, examples,
+scans, model files, and reviewer material remain outside the wheel; no package has been published
+to PyPI.
 
 Windows (PowerShell):
 
@@ -90,14 +92,19 @@ python3 -m venv .venv
 .venv/bin/aktreader-lab doctor
 ```
 
-`doctor` exits successfully only when the running command resolves this `aktreader-research`
-source checkout and all 22 public assets needed by the scan-free reproducibility paths are
-present. Its report distinguishes the Evidence Lab from the `aktreader-app` checkout and names
-every missing schema, prompt binding, lexicon, corpus, label collection, or example input.
-`doctor --inspect-root PATH` can diagnose another checkout, but does not reconfigure the running
-command. It therefore cannot make a code-only wheel claim that its repository assets are present.
-Model weights, runtime binaries, source scans, and private review packets remain outside this
-readiness check.
+`doctor` reports two separate boundaries. Packaged-runtime readiness requires all nine bundled
+schemas and lexicons and is available from an installed wheel. Full scan-free checkout
+reproducibility additionally requires the 22 public checkout assets, including frozen gold and
+labels. `doctor --inspect-root PATH` diagnoses that second boundary without reconfiguring the
+running command. Model weights, runtime binaries, source scans, and private review packets remain
+outside both readiness checks.
+
+Corpus-dependent evaluation data is never inferred from an installation directory. In a source
+checkout, `eval` retains its tracked gold and holdout defaults. From a wheel, pass both
+`--gold-dir` and `--holdout` explicitly. The wheel gate itself is reproducible with
+`python tools/smoke_installed_wheel.py`; it builds and installs a fresh wheel outside the checkout,
+then exercises `doctor`, a packaged-lexicon variant proposal, and date audit against a supplied
+fixture.
 
 The toolkit is intentionally local-first. Model binaries and weights are supplied and pinned by the researcher; AKT Reader does not download or contact models on its own.
 

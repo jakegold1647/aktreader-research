@@ -22,6 +22,7 @@ from aktreader import (
     __version__,
 )
 from aktreader.adjudication import generate_packet, ingest_answers
+from aktreader.assets import inspect_packaged_runtime_assets, runtime_asset_path
 from aktreader.batch import (
     BatchJob,
     BatchRunner,
@@ -75,6 +76,16 @@ from aktreader.variant_lexicon import load_variant_lexicon
 from aktreader.variants import daitch_mokotoff_codes
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
+ACT_RECORD_SCHEMA_PATH = runtime_asset_path("schemas/act-record-2.0.0.schema.json")
+DATE_AUDIT_SCHEMA_PATH = runtime_asset_path("schemas/date-audit-1.0.0.schema.json")
+VARIANT_BATCH_SCHEMA_PATH = runtime_asset_path("schemas/variant-batch-1.0.0.schema.json")
+NAME_LEXICON_PATH = runtime_asset_path("resources/serock_name_lexicon.csv")
+VARIANT_RELATIONS_PATH = runtime_asset_path("resources/serock_variant_relations.csv")
+
+
+def _source_checkout_default(relative_path: str) -> Path | None:
+    candidate = PROJECT_ROOT / relative_path
+    return candidate if candidate.exists() else None
 
 
 def _emit_json(payload: Mapping[str, Any], *, stream: Any = None) -> None:
@@ -177,7 +188,7 @@ def build_parser() -> argparse.ArgumentParser:
     consensus.add_argument(
         "--schema",
         type=Path,
-        default=PROJECT_ROOT / "schemas" / "act-record-2.0.0.schema.json",
+        default=ACT_RECORD_SCHEMA_PATH,
     )
     consensus.add_argument(
         "--replace-existing",
@@ -246,11 +257,17 @@ def build_parser() -> argparse.ArgumentParser:
         "eval", help="generate the clerk-year-sequestered SerockBench report"
     )
     evaluate.add_argument("--predictions", required=True, type=Path)
-    evaluate.add_argument("--gold-dir", type=Path, default=PROJECT_ROOT / "gold" / "acts")
+    evaluate.add_argument(
+        "--gold-dir",
+        type=Path,
+        default=_source_checkout_default("gold/acts"),
+        help="gold records directory; required outside a source checkout",
+    )
     evaluate.add_argument(
         "--holdout",
         type=Path,
-        default=PROJECT_ROOT / "gold" / "clerk_year_holdout.json",
+        default=_source_checkout_default("gold/clerk_year_holdout.json"),
+        help="clerk-year holdout manifest; required outside a source checkout",
     )
     evaluate.add_argument("--training-clerk-years", type=Path)
     evaluate.add_argument("--output", type=Path)
@@ -314,13 +331,13 @@ def build_parser() -> argparse.ArgumentParser:
     variant_propose.add_argument(
         "--lexicon",
         type=Path,
-        default=PROJECT_ROOT / "resources" / "serock_name_lexicon.csv",
+        default=NAME_LEXICON_PATH,
         help="source-attributed machine lexicon CSV",
     )
     variant_propose.add_argument(
         "--relations",
         type=Path,
-        default=PROJECT_ROOT / "resources" / "serock_variant_relations.csv",
+        default=VARIANT_RELATIONS_PATH,
         help="explicit attested-variant and ruled-out relationship CSV",
     )
     variant_propose.add_argument(
@@ -338,13 +355,13 @@ def build_parser() -> argparse.ArgumentParser:
     variant_batch.add_argument(
         "--lexicon",
         type=Path,
-        default=PROJECT_ROOT / "resources" / "serock_name_lexicon.csv",
+        default=NAME_LEXICON_PATH,
         help="source-attributed machine lexicon CSV",
     )
     variant_batch.add_argument(
         "--relations",
         type=Path,
-        default=PROJECT_ROOT / "resources" / "serock_variant_relations.csv",
+        default=VARIANT_RELATIONS_PATH,
         help="explicit attested-variant and ruled-out relationship CSV",
     )
     variant_batch.add_argument(
@@ -367,30 +384,52 @@ def build_parser() -> argparse.ArgumentParser:
     variant_batch_verify.add_argument(
         "--lexicon",
         type=Path,
-        default=PROJECT_ROOT / "resources" / "serock_name_lexicon.csv",
+        default=NAME_LEXICON_PATH,
         help="source-attributed machine lexicon CSV",
     )
     variant_batch_verify.add_argument(
         "--relations",
         type=Path,
-        default=PROJECT_ROOT / "resources" / "serock_variant_relations.csv",
+        default=VARIANT_RELATIONS_PATH,
         help="explicit attested-variant and ruled-out relationship CSV",
     )
     return parser
 
 
 def environment_report(inspect_root: Path | str | None = None) -> dict[str, object]:
-    """Return deterministic Lab identity and source-checkout readiness facts."""
+    """Return deterministic installed-runtime and source-checkout readiness facts."""
     supported = sys.version_info >= (3, 11)
     runtime_root = PROJECT_ROOT.resolve()
     inspected_root = runtime_root if inspect_root is None else Path(inspect_root).resolve()
     checkout = inspect_evidence_lab_checkout(inspected_root)
+    runtime_checkout = (
+        checkout
+        if inspected_root == runtime_root
+        else inspect_evidence_lab_checkout(runtime_root)
+    )
+    runtime_assets = inspect_packaged_runtime_assets()
     inspected_root_is_runtime_root = inspected_root == runtime_root
+    runtime_mode = (
+        "source-checkout"
+        if runtime_checkout["identity_status"] == "MATCH"
+        else "installed-distribution"
+    )
     scan_free_reproducibility_available = bool(
         supported and inspected_root_is_runtime_root and checkout["ready"]
     )
+    standalone_distribution_ready = bool(
+        supported and runtime_assets["runtime_assets_available"]
+    )
+    if inspect_root is not None:
+        pipeline_available = scan_free_reproducibility_available
+    elif runtime_mode == "source-checkout":
+        pipeline_available = bool(
+            scan_free_reproducibility_available and standalone_distribution_ready
+        )
+    else:
+        pipeline_available = standalone_distribution_ready
     return {
-        "doctor_report_version": "1.0.0",
+        "doctor_report_version": "1.1.0",
         "aktreader_version": __version__,
         "project_name": PROJECT_NAME,
         "project_role": PROJECT_ROLE,
@@ -399,6 +438,7 @@ def environment_report(inspect_root: Path | str | None = None) -> dict[str, obje
         "command_name": COMMAND_NAME,
         "legacy_command_name": LEGACY_COMMAND_NAME,
         "repository_url": REPOSITORY_URL,
+        "runtime_mode": runtime_mode,
         "runtime_root": str(runtime_root),
         "inspected_root": str(inspected_root),
         "inspected_root_is_runtime_root": inspected_root_is_runtime_root,
@@ -412,14 +452,15 @@ def environment_report(inspect_root: Path | str | None = None) -> dict[str, obje
         "missing_contract_assets": checkout["missing_contract_assets"],
         "contract_assets": checkout["contract_assets"],
         "inspected_checkout_ready": checkout["ready"],
-        "source_checkout_required": True,
-        "standalone_distribution_ready": False,
+        **runtime_assets,
+        "source_checkout_required": False,
+        "standalone_distribution_ready": standalone_distribution_ready,
         "implementation": platform.python_implementation(),
         "python_version": platform.python_version(),
         "python_supported": supported,
         "phase": "P2",
         "scan_free_reproducibility_available": scan_free_reproducibility_available,
-        "pipeline_available": scan_free_reproducibility_available,
+        "pipeline_available": pipeline_available,
         "reader_backend": "local-open-weights-only",
         "network_required": False,
     }
@@ -444,6 +485,7 @@ def _command_doctor(args: argparse.Namespace) -> int:
         )
         print(f"Legacy command alias: {report['legacy_command_name']}")
         print(f"Repository: {report['repository_url']}")
+        print(f"Runtime mode: {report['runtime_mode']}")
         print(f"Runtime root: {report['runtime_root']}")
         if not report["inspected_root_is_runtime_root"]:
             print(f"Inspected root: {report['inspected_root']} (diagnostic only)")
@@ -453,23 +495,37 @@ def _command_doctor(args: argparse.Namespace) -> int:
             f"(observed: {report['observed_distribution_name'] or 'none'})"
         )
         print(
-            "Contract assets: "
+            "Checkout assets: "
             f"{report['available_contract_asset_count']}/"
             f"{report['contract_asset_count']} available"
         )
         for path in report["missing_contract_assets"]:
             print(f"  missing: {path}")
         print(
+            "Packaged runtime assets: "
+            f"{report['available_runtime_asset_count']}/"
+            f"{report['runtime_asset_count']} available"
+        )
+        for path in report["missing_runtime_assets"]:
+            print(f"  missing from package: {path}")
+        print(
             "Scan-free reproducibility available: "
             f"{'yes' if report['scan_free_reproducibility_available'] else 'no'}"
         )
-        print("Packaging status: source checkout required; standalone wheel not ready")
+        print(
+            "Packaging status: "
+            + (
+                "standalone distribution ready"
+                if report["standalone_distribution_ready"]
+                else "standalone distribution incomplete"
+            )
+        )
         print(f"Pipeline phase: {report['phase']}")
         print(f"Python {report['python_version']} ({report['implementation']})")
         print(f"Python >= 3.11: {'yes' if report['python_supported'] else 'no'}")
         print("Reader backend: local open weights only")
         print("Network required: no")
-    return 0 if report["scan_free_reproducibility_available"] else 1
+    return 0 if report["pipeline_available"] else 1
 
 
 def _command_prompt_verify(args: argparse.Namespace) -> int:
@@ -517,7 +573,7 @@ def _command_label_validate(args: argparse.Namespace) -> int:
 def _command_date_audit(args: argparse.Namespace) -> int:
     paths = expand_date_audit_inputs(args.paths, recursive=args.recursive)
     report = build_date_audit_report(paths, recursive=args.recursive)
-    validate_instance(report, PROJECT_ROOT / "schemas" / "date-audit-1.0.0.schema.json")
+    validate_instance(report, DATE_AUDIT_SCHEMA_PATH)
     output_raw = getattr(args, "output", None)
     replace_existing = getattr(args, "replace_existing", False)
     if output_raw is None:
@@ -561,11 +617,10 @@ def _command_date_audit(args: argparse.Namespace) -> int:
 
 def _command_date_audit_verify(args: argparse.Namespace) -> int:
     artifact_path = local_input_path(args.artifact, role="date audit artifact")
-    schema_path = PROJECT_ROOT / "schemas" / "date-audit-1.0.0.schema.json"
     report = verify_date_audit_artifact(
         artifact_path=artifact_path,
         raw_paths=args.paths,
-        schema_path=schema_path,
+        schema_path=DATE_AUDIT_SCHEMA_PATH,
     )
     _emit_json(report)
     return 0
@@ -870,6 +925,10 @@ def _training_clerk_year_ids(path: Path | None) -> list[str]:
 
 
 def _command_eval(args: argparse.Namespace) -> int:
+    if args.gold_dir is None or args.holdout is None:
+        raise CliConfigurationError(
+            "eval requires --gold-dir and --holdout outside an Evidence Lab source checkout"
+        )
     gold_dir = local_input_path(args.gold_dir, role="gold directory")
     if not gold_dir.is_dir():
         raise CliConfigurationError(f"gold directory is not a directory: {gold_dir}")
@@ -991,7 +1050,7 @@ def _command_variant_batch(args: argparse.Namespace) -> int:
             raise CliConfigurationError(f"{role} is not a file: {path}")
 
     output = local_output_path(args.output, role="variant batch output")
-    schema_path = PROJECT_ROOT / "schemas" / "variant-batch-1.0.0.schema.json"
+    schema_path = VARIANT_BATCH_SCHEMA_PATH
     if output in {input_path, lexicon_path, relation_path, schema_path.resolve()}:
         raise CliConfigurationError(
             "variant batch output must not overwrite an input, lexicon, relation file, or schema"
@@ -1032,7 +1091,7 @@ def _command_variant_batch_verify(args: argparse.Namespace) -> int:
     input_path = local_input_path(args.input, role="variant batch input")
     lexicon_path = local_input_path(args.lexicon, role="variant source lexicon")
     relation_path = local_input_path(args.relations, role="variant relation lexicon")
-    schema_path = PROJECT_ROOT / "schemas" / "variant-batch-1.0.0.schema.json"
+    schema_path = VARIANT_BATCH_SCHEMA_PATH
     for role, path in (
         ("variant batch artifact", artifact_path),
         ("variant batch input", input_path),

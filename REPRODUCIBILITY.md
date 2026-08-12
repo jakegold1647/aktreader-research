@@ -16,16 +16,21 @@ From a clean clone with only the development dependencies installed (`pip instal
 
 1. The full test suite: `python -m pytest`.
 2. Lint: `python -m ruff check .`.
-3. Environment report: `python -m aktreader doctor`. It must identify the
-   `aktreader-research` checkout, report all 22 public contract assets present, and exit 0. A
-   code-only wheel or sibling Application checkout exits nonzero instead of claiming that the
-   Lab's source-relative reproducibility paths are available.
+3. Environment report: `python -m aktreader doctor`. In this checkout it must identify
+   `aktreader-research`, report all 22 checkout assets and all nine packaged runtime assets
+   present, and exit 0. An installed wheel reports its nine portable assets separately and does
+   not claim that the source-relative gold, labels, prompt bindings, or examples are installed.
 4. Frozen-prompt verification: `python -m aktreader prompt-verify --root .` must report `PASS` with the digest pinned in `prompts/manifest.json` and `prompts/reader_prompt.sha256`.
 5. Label validation and grounding surveys over the committed frozen labels, for example `python -m aktreader label-validate --report labels/readerA/serock-1877-birth-1.json` (`--report` is a flag; the labels are positional and more than one may be given). Expect exit 0 and `"status": "PASS"` — the canonical wave-006 Reader A labels return `GROUNDED` for all ten acts. Frozen pre-contract labels and the superseded July wave-006 pass (`labels/readerA/superseded/wave006-july-pass-ruled-compromised/`) still fail the v1.4 gate by design; for those, exit code 2 is the documented behavior.
 6. P4 variant batches from the committed public lexicons: build one with `python -m aktreader variant-batch --input examples/variant-batch.example.csv --output variant-proposals.json`, then prove exact content reproduction with `python -m aktreader variant-batch-verify --artifact variant-proposals.json --input examples/variant-batch.example.csv`.
 7. Exact civil-calendar arithmetic: `python -m aktreader date-convert 1900-02-29 --from-calendar julian` must return Gregorian `1900-03-13`. `python -m aktreader date-resolve-relative "вчерашняго числа" --julian 1890-02-07 --gregorian 1890-02-19` must resolve Julian `1890-02-06` and Gregorian `1890-02-18`. Both commands require no locale, model, scan, or network access.
 
 8. A read-only date survey over the frozen labels: `python -m aktreader date-audit labels/readerB` must exit 0 with 27 labels and no findings. `python -m aktreader date-audit labels/readerA` must exit 1 with 59 labels, one skipped non-label index sidecar, and five `DATE_VALUE_INVALID` findings across four labels. These expected findings expose frozen historical prose values; the command does not repair them. Reports are schema-valid and use common-root-relative paths, so the same input tree produces the same JSON under a different checkout root. Save one outside the label tree with `--output <artifact.json>`, then run `python -m aktreader date-audit-verify --artifact <artifact.json> <the same inputs>`; verification must report `EXACT_REPRODUCTION`, while `artifact_status` retains the audit outcome.
+
+9. Installed-wheel isolation: `python tools/smoke_installed_wheel.py` builds the current wheel,
+   installs it with dependencies into a fresh virtual environment, changes out of the source
+   checkout, and exercises packaged-runtime `doctor`, variant, and date-audit paths. CI runs this
+   smoke on Linux and Windows.
 
 ## Where a fresh clone stops
 

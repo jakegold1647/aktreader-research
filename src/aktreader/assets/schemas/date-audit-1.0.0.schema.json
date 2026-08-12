@@ -1,0 +1,221 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://aktreader.local/schemas/date-audit-1.0.0.schema.json",
+  "title": "AKT Reader date audit report",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "validator_version",
+    "validator_codes",
+    "status",
+    "mode",
+    "audit_complete",
+    "recursive",
+    "path_mode",
+    "input_manifest_sha256",
+    "file_count",
+    "label_count",
+    "finding_count",
+    "failing_label_count",
+    "parse_failure_count",
+    "skipped_non_label_count",
+    "finding_code_counts",
+    "files"
+  ],
+  "properties": {
+    "schema_version": {"const": "1.0.0"},
+    "validator_version": {"const": "1.0.0"},
+    "validator_codes": {
+      "const": [
+        "DATE_VALUE_INVALID",
+        "REGISTRATION_BEFORE_EVENT",
+        "DUAL_DATE_GAP",
+        "RELATIVE_DATE_MISMATCH"
+      ]
+    },
+    "status": {"enum": ["PASS", "FINDINGS", "INCOMPLETE"]},
+    "mode": {"const": "READ_ONLY"},
+    "audit_complete": {"type": "boolean"},
+    "recursive": {"type": "boolean"},
+    "path_mode": {"enum": ["COMMON_ROOT_RELATIVE", "ABSOLUTE_FALLBACK"]},
+    "input_manifest_sha256": {"$ref": "#/$defs/sha256"},
+    "file_count": {"type": "integer", "minimum": 1},
+    "label_count": {"type": "integer", "minimum": 0},
+    "finding_count": {"type": "integer", "minimum": 0},
+    "failing_label_count": {"type": "integer", "minimum": 0},
+    "parse_failure_count": {"type": "integer", "minimum": 0},
+    "skipped_non_label_count": {"type": "integer", "minimum": 0},
+    "finding_code_counts": {
+      "type": "object",
+      "propertyNames": {
+        "enum": [
+          "DATE_VALUE_INVALID",
+          "REGISTRATION_BEFORE_EVENT",
+          "DUAL_DATE_GAP",
+          "RELATIVE_DATE_MISMATCH"
+        ]
+      },
+      "additionalProperties": {"type": "integer", "minimum": 1}
+    },
+    "files": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "oneOf": [
+          {"$ref": "#/$defs/labelResult"},
+          {"$ref": "#/$defs/skippedResult"},
+          {"$ref": "#/$defs/parseFailure"}
+        ]
+      }
+    }
+  },
+  "allOf": [
+    {
+      "if": {"properties": {"status": {"const": "PASS"}}, "required": ["status"]},
+      "then": {
+        "properties": {
+          "audit_complete": {"const": true},
+          "finding_count": {"const": 0},
+          "parse_failure_count": {"const": 0}
+        }
+      }
+    },
+    {
+      "if": {"properties": {"status": {"const": "FINDINGS"}}, "required": ["status"]},
+      "then": {
+        "properties": {
+          "audit_complete": {"const": true},
+          "finding_count": {"minimum": 1},
+          "parse_failure_count": {"const": 0}
+        }
+      }
+    },
+    {
+      "if": {"properties": {"status": {"const": "INCOMPLETE"}}, "required": ["status"]},
+      "then": {"properties": {"audit_complete": {"const": false}}}
+    }
+  ],
+  "$defs": {
+    "sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "path": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "^[^\\\\]+$"
+    },
+    "finding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "code",
+        "message",
+        "record_ids",
+        "field_paths",
+        "severity",
+        "blocks_confident",
+        "evidence"
+      ],
+      "properties": {
+        "code": {
+          "enum": [
+            "DATE_VALUE_INVALID",
+            "REGISTRATION_BEFORE_EVENT",
+            "DUAL_DATE_GAP",
+            "RELATIVE_DATE_MISMATCH"
+          ]
+        },
+        "message": {"type": "string", "minLength": 1},
+        "record_ids": {
+          "type": "array",
+          "minItems": 1,
+          "items": {"type": "string", "minLength": 1}
+        },
+        "field_paths": {
+          "type": "array",
+          "minItems": 1,
+          "items": {"type": "string", "minLength": 1}
+        },
+        "severity": {"type": "string", "minLength": 1},
+        "blocks_confident": {"type": "boolean"},
+        "evidence": {"type": "object"}
+      }
+    },
+    "labelResult": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "path",
+        "source_sha256",
+        "status",
+        "label_kind",
+        "label_id",
+        "record_id",
+        "finding_count",
+        "findings"
+      ],
+      "properties": {
+        "path": {"$ref": "#/$defs/path"},
+        "source_sha256": {"$ref": "#/$defs/sha256"},
+        "status": {"enum": ["PASS", "FINDINGS"]},
+        "label_kind": {"enum": ["canonical", "legacy"]},
+        "label_id": {
+          "oneOf": [
+            {"type": "string", "minLength": 1},
+            {"type": "null"}
+          ]
+        },
+        "record_id": {"type": "string", "minLength": 1},
+        "finding_count": {"type": "integer", "minimum": 0},
+        "findings": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/finding"}
+        }
+      },
+      "allOf": [
+        {
+          "if": {"properties": {"status": {"const": "PASS"}}, "required": ["status"]},
+          "then": {
+            "properties": {
+              "finding_count": {"const": 0},
+              "findings": {"maxItems": 0}
+            }
+          }
+        },
+        {
+          "if": {"properties": {"status": {"const": "FINDINGS"}}, "required": ["status"]},
+          "then": {
+            "properties": {
+              "finding_count": {"minimum": 1},
+              "findings": {"minItems": 1}
+            }
+          }
+        }
+      ]
+    },
+    "skippedResult": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "source_sha256", "status", "reason"],
+      "properties": {
+        "path": {"$ref": "#/$defs/path"},
+        "source_sha256": {"$ref": "#/$defs/sha256"},
+        "status": {"const": "SKIPPED_NON_LABEL"},
+        "reason": {"type": "string", "minLength": 1}
+      }
+    },
+    "parseFailure": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "status", "error"],
+      "properties": {
+        "path": {"$ref": "#/$defs/path"},
+        "source_sha256": {"$ref": "#/$defs/sha256"},
+        "status": {"const": "PARSE_FAIL"},
+        "error": {"type": "string", "minLength": 1}
+      }
+    }
+  }
+}
