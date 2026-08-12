@@ -83,6 +83,7 @@ Exact Julian/Gregorian conversion is available without a scan or model:
 .\.venv\Scripts\aktreader.exe date-resolve-relative "вчерашняго числа" `
   --julian 1890-02-07 `
   --gregorian 1890-02-19
+.\.venv\Scripts\aktreader.exe date-audit labels\readerB
 ```
 
 The date validators reject malformed normalized values and compare dual dates as exact civil
@@ -90,6 +91,11 @@ days, including the Julian leap-day transition in 1900. They do not infer that a
 physically written. The relative resolver handles only two source-attested Russian phrase
 families and refuses uncertain anchors. See
 [civil-date conversion and validation](docs/date-validation.md).
+
+`date-audit` is a read-only corpus survey: explicit files and top-level directory JSON are
+sorted deterministically, malformed input is reported without stopping the remaining survey,
+and recursion is opt-in. The frozen Reader B directory passes. Reader A intentionally exits 1
+with five findings in four legacy labels; the source files are not rewritten.
 
 The P4 name-retrieval tools are also available without scans or a model:
 

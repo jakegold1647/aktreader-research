@@ -68,6 +68,12 @@ one documented phrase family, literal fixtures, normalized expectations, and tes
 that preserve rather than discard the original wording. Use the date-expression
 issue template. Do not add a general word-number parser from remembered vocabulary.
 
+Before proposing a date change, run `python -m aktreader date-audit labels/readerB`
+and the specific label files your fixtures exercise. The audit is read-only and emits
+complete finding evidence. Reader A's five known prose-value findings are frozen
+historical cases, not starter edits; a contribution should add an attributable fixture
+or validator rule rather than rewrite those labels.
+
 ## 3. Check the CLI documentation against the code
 
 `consensus-merge` is now written up in

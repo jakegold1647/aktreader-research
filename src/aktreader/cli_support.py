@@ -60,6 +60,26 @@ def _reject_json_constant(value: str) -> None:
     raise CliConfigurationError(f"non-standard JSON number is forbidden: {value}")
 
 
+def parse_strict_json_bytes(
+    raw_bytes: bytes, *, role: str, source: Path | str | None = None
+) -> Any:
+    """Parse one UTF-8 JSON byte buffer with the CLI's strict object rules."""
+
+    location = f": {source}" if source is not None else ""
+    try:
+        text = raw_bytes.decode("utf-8")
+    except UnicodeDecodeError as error:
+        raise CliConfigurationError(f"{role} is not UTF-8{location}") from error
+    try:
+        return json.loads(
+            text,
+            object_pairs_hook=_strict_object,
+            parse_constant=_reject_json_constant,
+        )
+    except json.JSONDecodeError as error:
+        raise CliConfigurationError(f"{role} is not valid JSON{location}: {error}") from error
+
+
 def raw_local_path(path: Path | str, *, role: str) -> str:
     """Reject URL and UNC syntax before asking ``pathlib`` to interpret a path."""
     raw = os.fspath(path)
@@ -93,16 +113,7 @@ def load_strict_json(path: Path | str, *, role: str) -> Any:
     source = local_input_path(path, role=role)
     if not source.is_file():
         raise CliConfigurationError(f"{role} is not a file: {source}")
-    try:
-        return json.loads(
-            source.read_text(encoding="utf-8"),
-            object_pairs_hook=_strict_object,
-            parse_constant=_reject_json_constant,
-        )
-    except UnicodeError as error:
-        raise CliConfigurationError(f"{role} is not UTF-8: {source}") from error
-    except json.JSONDecodeError as error:
-        raise CliConfigurationError(f"{role} is not valid JSON: {source}: {error}") from error
+    return parse_strict_json_bytes(source.read_bytes(), role=role, source=source)
 
 
 def load_json_object(path: Path | str, *, role: str) -> dict[str, Any]:

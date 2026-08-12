@@ -36,6 +36,11 @@ from aktreader.cli_support import (
 )
 from aktreader.consensus import merge_labels
 from aktreader.consensus_record import build_consensus_record, write_consensus_record
+from aktreader.date_audit import (
+    build_date_audit_report,
+    date_audit_exit_code,
+    expand_date_audit_inputs,
+)
 from aktreader.evaluation import evaluate_predictions, load_prediction_records
 from aktreader.grounding import (
     grounding_findings,
@@ -100,6 +105,17 @@ def build_parser() -> argparse.ArgumentParser:
             "survey every label instead of stopping at the first ungrounded one; "
             "still exits non-zero when any label fails the grounded gate"
         ),
+    )
+
+    date_audit = subparsers.add_parser(
+        "date-audit",
+        help="audit normalized dates in label JSON without rewriting source files",
+    )
+    date_audit.add_argument("paths", nargs="+", type=Path, help="label JSON files or directories")
+    date_audit.add_argument(
+        "--recursive",
+        action="store_true",
+        help="include JSON files below each directory instead of only its top level",
     )
 
     consensus = subparsers.add_parser(
@@ -382,6 +398,13 @@ def _command_label_validate(args: argparse.Namespace) -> int:
         )
     _emit_json({"status": "PASS", "labels": results, "count": len(results)})
     return 0
+
+
+def _command_date_audit(args: argparse.Namespace) -> int:
+    paths = expand_date_audit_inputs(args.paths, recursive=args.recursive)
+    report = build_date_audit_report(paths, recursive=args.recursive)
+    _emit_json(report)
+    return date_audit_exit_code(report)
 
 
 def _label_validate_report(args: argparse.Namespace) -> int:
@@ -875,6 +898,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         "doctor": _command_doctor,
         "prompt-verify": _command_prompt_verify,
         "label-validate": _command_label_validate,
+        "date-audit": _command_date_audit,
         "consensus-merge": _command_consensus_merge,
         "reader-inspect": _command_reader_inspect,
         "reader-infer": _command_reader_infer,

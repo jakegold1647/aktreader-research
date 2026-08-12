@@ -60,6 +60,32 @@ def test_date_convert_rejects_invalid_declared_calendar_date(capsys) -> None:
     assert "invalid" in capsys.readouterr().err
 
 
+def test_date_audit_cli_distinguishes_findings_from_clean_labels(capsys) -> None:
+    reader_a_exit = main(["date-audit", str(PROJECT_ROOT / "labels" / "readerA")])
+    reader_a = json.loads(capsys.readouterr().out)
+    reader_b_exit = main(["date-audit", str(PROJECT_ROOT / "labels" / "readerB")])
+    reader_b = json.loads(capsys.readouterr().out)
+
+    assert reader_a_exit == 1
+    assert reader_a["status"] == "FINDINGS"
+    assert reader_a["finding_count"] == 5
+    assert reader_b_exit == 0
+    assert reader_b["status"] == "PASS"
+    assert reader_b["finding_count"] == 0
+
+
+def test_date_audit_cli_reports_malformed_json_as_incomplete(tmp_path: Path, capsys) -> None:
+    malformed = tmp_path / "broken.json"
+    malformed.write_text("{", encoding="utf-8")
+
+    exit_code = main(["date-audit", str(malformed)])
+    report = json.loads(capsys.readouterr().out)
+
+    assert exit_code == 2
+    assert report["status"] == "INCOMPLETE"
+    assert report["parse_failure_count"] == 1
+
+
 def test_date_convert_refuses_to_silently_drop_a_time(capsys) -> None:
     exit_code = main(
         ["date-convert", "1890-01-01T12:00:00", "--from-calendar", "julian"]

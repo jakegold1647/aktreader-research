@@ -22,6 +22,8 @@ From a clean clone with only the development dependencies installed (`pip instal
 6. P4 variant batches from the committed public lexicons: build one with `python -m aktreader variant-batch --input examples/variant-batch.example.csv --output variant-proposals.json`, then prove exact content reproduction with `python -m aktreader variant-batch-verify --artifact variant-proposals.json --input examples/variant-batch.example.csv`.
 7. Exact civil-calendar arithmetic: `python -m aktreader date-convert 1900-02-29 --from-calendar julian` must return Gregorian `1900-03-13`. `python -m aktreader date-resolve-relative "вчерашняго числа" --julian 1890-02-07 --gregorian 1890-02-19` must resolve Julian `1890-02-06` and Gregorian `1890-02-18`. Both commands require no locale, model, scan, or network access.
 
+8. A read-only date survey over the frozen labels: `python -m aktreader date-audit labels/readerB` must exit 0 with 27 labels and no findings. `python -m aktreader date-audit labels/readerA` must exit 1 with 59 labels, one skipped non-label index sidecar, and five `DATE_VALUE_INVALID` findings across four labels. These expected findings expose frozen historical prose values; the command does not repair them.
+
 ## Where a fresh clone stops
 
 The P2 baseline itself cannot be reproduced from the repository alone. `python -m aktreader reader-inspect --config examples/p2-baseline.local-reader.json` fails closed (exit code 2) at the first missing artifact — the pinned `llama-mtmd-cli.exe` runtime — and that is the correct behavior on any machine without the owner-provisioned artifacts. Completing `batch-run` additionally requires:

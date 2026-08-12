@@ -52,6 +52,35 @@ surfaced five legacy Reader A fields that had stored phrases such as `same day, 
 were not rewritten. New consensus builds carry `DATE_VALUE_INVALID` findings so the prose cannot
 quietly pass as a validated date.
 
+## Audit label files without rewriting them
+
+`date-audit` exposes the same date validators as a deterministic, read-only corpus survey:
+
+```powershell
+aktreader date-audit labels\readerB
+aktreader date-audit labels\readerA
+aktreader date-audit labels\readerA\serock-1890-death-16.json
+```
+
+An explicit file must be JSON. A directory contributes only its top-level JSON files unless
+`--recursive` is supplied. Results are sorted by resolved path, and overlapping arguments such
+as a directory plus one file inside it are rejected instead of double-counted. JSON sidecars
+with neither `observations` nor `fields` are reported as `SKIPPED_NON_LABEL`; malformed JSON or
+malformed label containers are `PARSE_FAIL`. Every readable file carries its SHA-256 in the
+report.
+
+| Exit | Report status | Meaning |
+| ---: | --- | --- |
+| 0 | `PASS` | Every recognized label was readable and produced no date finding. |
+| 1 | `FINDINGS` | The audit completed and at least one label produced a finding. |
+| 2 | `INCOMPLETE` | A file could not be parsed, no label was recognized, or the input selection was invalid. |
+
+The committed top-level corpus is a regression fixture for the command. Reader B has 27 labels
+and passes with no findings. Reader A has 59 labels plus one non-label index sidecar and reports
+five `DATE_VALUE_INVALID` findings across four labels. This is expected historical evidence,
+not a prompt to edit the frozen labels. The finding report preserves each validator message,
+record and field paths, severity, confidence-blocking flag, and evidence object.
+
 Relative source phrases remain literal evidence. For example, `вчерашняго числа` (“yesterday”)
 may be resolved only when the registration date is usable; the normalized event date carries the
 resolved ISO value while `original_script` retains the phrase. The narrow resolver below does not
