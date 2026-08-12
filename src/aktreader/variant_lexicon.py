@@ -33,7 +33,7 @@ _RELATION_FIELDS = (
     "source_tier",
     "source_ref",
 )
-_ENTITY_TYPES = frozenset({"surname", "given", "town"})
+VARIANT_ENTITY_TYPES = frozenset({"surname", "given", "town"})
 _SCRIPTS = frozenset({"latin", "cyrillic"})
 _CYRILLIC_RE = re.compile(r"[\u0400-\u04ff]")
 
@@ -107,11 +107,11 @@ class VariantProposalReport:
     query_codes: tuple[str, ...]
     proposals: tuple[VariantProposal, ...]
 
-    def as_dict(self) -> dict[str, object]:
+    def as_dict(self, *, include_warning: bool = True) -> dict[str, object]:
         counts = {relation.value: 0 for relation in VariantRelation}
         for proposal in self.proposals:
             counts[proposal.relation.value] += 1
-        return {
+        payload: dict[str, object] = {
             "status": "PROPOSAL_ONLY",
             "literal_input": self.literal_input,
             "literal_input_unchanged": True,
@@ -119,11 +119,13 @@ class VariantProposalReport:
             "query_codes": list(self.query_codes),
             "counts": counts,
             "proposals": [proposal.as_dict() for proposal in self.proposals],
-            "warning": (
+        }
+        if include_warning:
+            payload["warning"] = (
                 "Search proposals do not establish identity and never replace a recorded form; "
                 "RULED_OUT evidence takes precedence over phonetic similarity."
-            ),
-        }
+            )
+        return payload
 
 
 def _match_key(value: str) -> str:
@@ -178,7 +180,7 @@ def _read_rows(path: Path, expected_fields: tuple[str, ...]) -> list[dict[str, s
 def _validate_common(
     *, path: Path, line_number: int, entity_type: str, form: str, script: str
 ) -> None:
-    if entity_type not in _ENTITY_TYPES:
+    if entity_type not in VARIANT_ENTITY_TYPES:
         raise VariantLexiconError(f"{path}:{line_number}: unsupported entity_type {entity_type!r}")
     if script not in _SCRIPTS:
         raise VariantLexiconError(f"{path}:{line_number}: unsupported script {script!r}")
@@ -354,7 +356,7 @@ class VariantLexicon:
     ) -> VariantProposalReport:
         if not isinstance(literal_input, str) or not literal_input.strip():
             raise VariantLexiconError("variant proposal input must be a nonblank string")
-        if entity_type is not None and entity_type not in _ENTITY_TYPES:
+        if entity_type is not None and entity_type not in VARIANT_ENTITY_TYPES:
             raise VariantLexiconError(f"unsupported entity_type {entity_type!r}")
 
         query_key = _match_key(literal_input)

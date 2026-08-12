@@ -82,11 +82,14 @@ The P4 name-retrieval tools are also available without scans or a model:
 .\.venv\Scripts\aktreader.exe variant-key Goldsztejn Goldsztajn
 .\.venv\Scripts\aktreader.exe variant-propose Kanarek --kind surname
 .\.venv\Scripts\aktreader.exe variant-propose Serock --kind town
+.\.venv\Scripts\aktreader.exe variant-batch `
+  --input examples\variant-batch.example.csv `
+  --output variant-proposals.json
 ```
 
-Both commands emit `PROPOSAL_ONLY`. `variant-propose` keeps documented forms, curated variants,
-phonetic candidates, and explicit false friends separate; a similarity is never proof of
-identity. See [the variant bridge](docs/variant-key.md).
+All variant commands emit `PROPOSAL_ONLY`. `variant-propose` and `variant-batch` keep documented
+forms, curated variants, phonetic candidates, and explicit false friends separate; a similarity
+is never proof of identity. See [the variant bridge](docs/variant-key.md).
 
 ## Contributing
 

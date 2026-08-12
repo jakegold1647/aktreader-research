@@ -35,6 +35,41 @@ declared script does not match its form. Use `--no-phonetic` to return only docu
 explicit relationships. Cyrillic can be queried exactly; unsupported scripts are never reduced
 to a meaningless all-zero key.
 
+## Batch workflow
+
+`variant-batch` applies the same proposal rules to an explicit UTF-8 CSV:
+
+```csv
+id,query,entity_type
+surname-1,Kanarek,surname
+surname-2,Goldstein,surname
+town-1,Serock,town
+surname-3,Мяра,surname
+```
+
+The exact input contract is `id,query,entity_type`. IDs must be nonblank and unique; every row
+must explicitly choose `surname`, `given`, or `town`. The command does not infer a type from a
+spelling or filename.
+
+```powershell
+aktreader variant-batch `
+  --input examples\variant-batch.example.csv `
+  --output variant-proposals.json
+```
+
+The output:
+
+- preserves input order, stable IDs, row numbers, literal queries, and entity types;
+- records SHA-256 for the input, source lexicon, and explicit relationship file;
+- carries every proposal's relation, shared phonetic keys, and source evidence;
+- validates against `schemas/variant-batch-1.0.0.schema.json` before writing;
+- detects if an input or lexicon changes while the artifact is being built;
+- writes atomically and refuses to replace an existing file without `--replace-existing`; and
+- leaves no partial output when any row fails validation.
+
+Use `--no-phonetic` for documented and explicitly curated relationships only. The published
+sample is [`examples/variant-batch.example.csv`](../examples/variant-batch.example.csv).
+
 ## Raw phonetic keys
 
 `variant-key` exposes the Daitch–Mokotoff encoder directly:

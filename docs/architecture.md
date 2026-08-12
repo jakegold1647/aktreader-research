@@ -159,9 +159,9 @@ memorial-institution records.
   benchmarking remains open.
 - P3 acquisition and Pułtusk batch work remain blocked until the explicit terms and polite-pace
   gate is approved.
-- P4 adds variant proposals without changing literal names. Two proposal-only slices now ship:
-  raw Daitch–Mokotoff keys and the source-attributed [`variant-propose`](variant-key.md) layer,
-  where explicit `RULED_OUT` evidence outranks similarity. Broader attributable relation
-  coverage and transliteration expansion remain open.
+- P4 adds variant proposals without changing literal names. Raw Daitch–Mokotoff keys, the
+  source-attributed [`variant-propose`](variant-key.md) layer, and schema-valid CSV batch
+  processing now ship; explicit `RULED_OUT` evidence outranks similarity in both interactive and
+  batch use. Broader attributable relation coverage and transliteration expansion remain open.
 - P5 settles the publication surface. The license half is already decided and in
   force: MIT for code, CC BY 4.0 for original transcriptions and derived records.

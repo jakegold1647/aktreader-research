@@ -46,8 +46,10 @@ from aktreader.grounding import (
 from aktreader.labels import LabelValidationError, load_reader_label
 from aktreader.local_reader import LocalReader, LocalReaderError
 from aktreader.prompt import verify_reader_prompt
+from aktreader.schema import validate_instance
 from aktreader.validators.dates import validate_dates
 from aktreader.validators.formula import validate_formula_positions
+from aktreader.variant_batch import build_variant_batch
 from aktreader.variant_lexicon import load_variant_lexicon
 from aktreader.variants import daitch_mokotoff_codes
 
@@ -221,6 +223,35 @@ def build_parser() -> argparse.ArgumentParser:
         "--no-phonetic",
         action="store_true",
         help="return documented relationships only, without Daitch-Mokotoff candidates",
+    )
+
+    variant_batch = subparsers.add_parser(
+        "variant-batch",
+        help="apply source-attributed variant proposals to an explicit UTF-8 CSV batch",
+    )
+    variant_batch.add_argument("--input", required=True, type=Path)
+    variant_batch.add_argument("--output", required=True, type=Path)
+    variant_batch.add_argument(
+        "--lexicon",
+        type=Path,
+        default=PROJECT_ROOT / "resources" / "serock_name_lexicon.csv",
+        help="source-attributed machine lexicon CSV",
+    )
+    variant_batch.add_argument(
+        "--relations",
+        type=Path,
+        default=PROJECT_ROOT / "resources" / "serock_variant_relations.csv",
+        help="explicit attested-variant and ruled-out relationship CSV",
+    )
+    variant_batch.add_argument(
+        "--no-phonetic",
+        action="store_true",
+        help="return documented relationships only, without Daitch-Mokotoff candidates",
+    )
+    variant_batch.add_argument(
+        "--replace-existing",
+        action="store_true",
+        help="explicitly permit atomic replacement of an existing output",
     )
     return parser
 
@@ -678,6 +709,55 @@ def _command_variant_propose(args: argparse.Namespace) -> int:
     return 0
 
 
+def _command_variant_batch(args: argparse.Namespace) -> int:
+    input_path = local_input_path(args.input, role="variant batch input")
+    lexicon_path = local_input_path(args.lexicon, role="variant source lexicon")
+    relation_path = local_input_path(args.relations, role="variant relation lexicon")
+    for role, path in (
+        ("variant batch input", input_path),
+        ("variant source lexicon", lexicon_path),
+        ("variant relation lexicon", relation_path),
+    ):
+        if not path.is_file():
+            raise CliConfigurationError(f"{role} is not a file: {path}")
+
+    output = local_output_path(args.output, role="variant batch output")
+    schema_path = PROJECT_ROOT / "schemas" / "variant-batch-1.0.0.schema.json"
+    if output in {input_path, lexicon_path, relation_path, schema_path.resolve()}:
+        raise CliConfigurationError(
+            "variant batch output must not overwrite an input, lexicon, relation file, or schema"
+        )
+    if output.is_dir():
+        raise CliConfigurationError(f"variant batch output is a directory: {output}")
+    if output.exists() and not args.replace_existing:
+        raise CliConfigurationError(
+            "variant batch output already exists; pass --replace-existing to replace it atomically"
+        )
+
+    artifact = build_variant_batch(
+        input_path=input_path,
+        lexicon_path=lexicon_path,
+        relations_path=relation_path,
+        include_phonetic=not args.no_phonetic,
+    )
+    validate_instance(artifact, schema_path)
+    atomic_write_json(output, artifact)
+    _emit_json(
+        {
+            "status": "SUCCEEDED",
+            "artifact_status": artifact["status"],
+            "output": str(output),
+            "row_count": artifact["row_count"],
+            "proposal_count": artifact["proposal_count"],
+            "relation_counts": artifact["relation_counts"],
+            "input_sha256": artifact["input_sha256"],
+            "lexicon_sha256": artifact["lexicon_sha256"],
+            "relations_sha256": artifact["relations_sha256"],
+        }
+    )
+    return 0
+
+
 def main(argv: Sequence[str] | None = None) -> int:
     """Run one local-only CLI command with concise, non-secret error reporting."""
     parser = build_parser()
@@ -694,6 +774,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         "eval": _command_eval,
         "variant-key": _command_variant_key,
         "variant-propose": _command_variant_propose,
+        "variant-batch": _command_variant_batch,
     }
     if args.command is None:
         parser.print_help()
