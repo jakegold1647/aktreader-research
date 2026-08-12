@@ -41,6 +41,17 @@ def test_parser_exposes_no_api_key_or_network_backend_options() -> None:
     assert "hosted" not in help_text
 
 
+def test_variant_key_is_machine_readable_and_marks_collisions_as_proposals(capsys) -> None:
+    exit_code = main(["variant-key", "Goldsztejn", "Goldsztajn"])
+
+    payload = json.loads(capsys.readouterr().out)
+    assert exit_code == 0
+    assert payload["status"] == "PROPOSAL_ONLY"
+    assert payload["algorithm"] == "Daitch-Mokotoff Soundex"
+    assert payload["shared_codes"]
+    assert "does not establish" in payload["warning"]
+
+
 def test_prompt_verify_and_canonical_label_validation_are_machine_readable(
     tmp_path: Path, capsys
 ) -> None:

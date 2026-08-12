@@ -1,10 +1,13 @@
-# AKT Reader: researcher overview
+# AKT Reader — Evidence Lab: researcher overview
 
 ## The short version
 
 AKT Reader is an open research software project for extracting structured evidence from nineteenth-century civil-register acts written in Russian Cyrillic and Polish. It is designed for the difficult middle ground between a scanned archival page and a defensible historical conclusion: a reading may be useful without being certain, and uncertainty should remain visible all the way through the data pipeline.
 
-The public research edition is at [jakegold1647/aktreader-research](https://github.com/jakegold1647/aktreader-research).
+The public evidence lab is at
+[jakegold1647/aktreader-research](https://github.com/jakegold1647/aktreader-research). The
+runnable reader application is a separate repository at
+[jakegold1647/aktreader](https://github.com/jakegold1647/aktreader).
 
 ## Research question
 
@@ -68,4 +71,3 @@ The best first conversation is not a request to endorse the system. It is a requ
 - [Evaluation report](docs/p2-evaluation.md) — documented diagnostics and the measured local baseline
 - [P2 local baseline addendum](docs/p2-baseline-addendum.md) — the measured before-picture and its limits
 - [Citation record](CITATION.cff) — how to cite the software
-

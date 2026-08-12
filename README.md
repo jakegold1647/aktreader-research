@@ -1,11 +1,18 @@
-# AKT Reader Research Edition
+# AKT Reader — Evidence Lab
+
+> **Repository role:** `aktreader-research` holds evaluation evidence, research methodology,
+> and reproducibility tooling. It is not the reader application and it is not the independent
+> benchmark dataset.
 
 [![CI](https://github.com/jakegold1647/aktreader-research/actions/workflows/ci.yml/badge.svg)](https://github.com/jakegold1647/aktreader-research/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/code-MIT-blue.svg)](LICENSE)
 [![Data: CC BY 4.0](https://img.shields.io/badge/data-CC%20BY%204.0-lightgrey.svg)](DATA_GOVERNANCE.md)
 [![Python 3.11+](https://img.shields.io/badge/python-3.11%2B-blue.svg)](pyproject.toml)
 
-AKT Reader is a local, evidence-first toolkit for extracting structured information from nineteenth-century civil-register acts written in Russian Cyrillic and Polish. It is designed for historical and genealogical research where uncertain readings must remain visible and traceable to the source record.
+This repository is the evidence and methodology companion to AKT Reader, a local toolkit for
+extracting structured information from nineteenth-century civil-register acts written in
+Russian Cyrillic and Polish. It is designed for historical and genealogical research where
+uncertain readings must remain visible and traceable to the source record.
 
 The project does not claim transcription authority or historical truth. It produces reviewable evidence objects: structured fields, literal-script readings, confidence grades, explicit alternatives, and source-span provenance. Researchers should verify every material conclusion against the underlying record.
 
@@ -24,15 +31,17 @@ The project does not claim transcription authority or historical truth. It produ
 - Hosted-model calls, API keys, automatic model downloads, archive scraping, or memorial-institution data.
 - A completed accuracy claim: the one measured local baseline is a deliberately weak research-derived before-picture, not validated accuracy — see the [P2 local baseline addendum](docs/p2-baseline-addendum.md).
 
-## Related repositories
+## Which repository do I need?
 
-- [`aktreader`](https://github.com/jakegold1647/aktreader) — the reader application this
-  repository evaluates: the local pipeline, CLI, and review tooling. The two repositories
-  have separate histories on purpose; that one ships the tool, this one holds the evidence
-  about how well it reads.
-- [`congress-poland-registers`](https://github.com/jakegold1647/congress-poland-registers) —
-  an independent open benchmark for handwritten Congress Poland vital records, under
-  construction. Its evaluation tooling is runnable today against a synthetic toy corpus.
+| Repository | Role | Use it when you want to... |
+| --- | --- | --- |
+| [`aktreader`](https://github.com/jakegold1647/aktreader) | **AKT Reader — Application** | Run or improve the local scan-to-evidence reader. |
+| **`aktreader-research` (you are here)** | **AKT Reader — Evidence Lab** | Audit its claims, reproduce evaluations, inspect labels, or develop evidence-aware research utilities. |
+| [`congress-poland-registers`](https://github.com/jakegold1647/congress-poland-registers) | **Congress Poland Registers — Benchmark Dataset** | Build or evaluate against an independent, rights-cleared HTR corpus. |
+
+The application and evidence lab have separate histories on purpose. The application ships the
+reader; this repository holds the evidence about how well it reads. The benchmark is independent
+of both and is still under construction.
 
 ## Research use
 
@@ -65,6 +74,15 @@ python3 -m venv .venv
 ```
 
 The toolkit is intentionally local-first. Model binaries and weights are supplied and pinned by the researcher; AKT Reader does not download or contact models on its own.
+
+The first separately usable P4 name-retrieval slice is also available without scans or a model:
+
+```powershell
+.\.venv\Scripts\aktreader.exe variant-key Goldsztejn Goldsztajn
+```
+
+It emits Daitch–Mokotoff Soundex keys as `PROPOSAL_ONLY`; a collision is a reason to inspect two
+spellings, never proof of identity. See [variant retrieval keys](docs/variant-key.md).
 
 ## Contributing
 

@@ -48,6 +48,7 @@ from aktreader.local_reader import LocalReader, LocalReaderError
 from aktreader.prompt import verify_reader_prompt
 from aktreader.validators.dates import validate_dates
 from aktreader.validators.formula import validate_formula_positions
+from aktreader.variants import daitch_mokotoff_codes
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 
@@ -176,6 +177,16 @@ def build_parser() -> argparse.ArgumentParser:
     )
     evaluate.add_argument("--training-clerk-years", type=Path)
     evaluate.add_argument("--output", type=Path)
+
+    variant_key = subparsers.add_parser(
+        "variant-key",
+        help="generate proposal-only Daitch-Mokotoff retrieval keys for names",
+    )
+    variant_key.add_argument(
+        "names",
+        nargs="+",
+        help="one or more Latin-script names; quote names containing spaces",
+    )
     return parser
 
 
@@ -584,6 +595,35 @@ def _command_eval(args: argparse.Namespace) -> int:
     return 0
 
 
+def _command_variant_key(args: argparse.Namespace) -> int:
+    results = [
+        {"input": name, "codes": list(daitch_mokotoff_codes(name))}
+        for name in args.names
+    ]
+    by_code: dict[str, list[str]] = {}
+    for result in results:
+        for code in result["codes"]:
+            by_code.setdefault(code, []).append(result["input"])
+    collisions = [
+        {"code": code, "inputs": names}
+        for code, names in sorted(by_code.items())
+        if len(names) > 1
+    ]
+    _emit_json(
+        {
+            "status": "PROPOSAL_ONLY",
+            "algorithm": "Daitch-Mokotoff Soundex",
+            "results": results,
+            "shared_codes": collisions,
+            "warning": (
+                "A shared phonetic key proposes a search candidate; it does not establish "
+                "that two names identify the same person or family."
+            ),
+        }
+    )
+    return 0
+
+
 def main(argv: Sequence[str] | None = None) -> int:
     """Run one local-only CLI command with concise, non-secret error reporting."""
     parser = build_parser()
@@ -598,6 +638,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         "batch-run": _command_batch_run,
         "adjudicate": _command_adjudicate,
         "eval": _command_eval,
+        "variant-key": _command_variant_key,
     }
     if args.command is None:
         parser.print_help()

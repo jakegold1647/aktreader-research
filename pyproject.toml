@@ -1,7 +1,7 @@
 [project]
 name = "aktreader"
 version = "0.1.0"
-description = "A register-reading machine: scan in, graded genealogical evidence out. Structured, uncertainty-honest extraction of 19th-century civil register acts from partitioned Poland (Russian Cyrillic 1868-1915, Polish before/after)."
+description = "Evidence, evaluation, and reproducibility tooling for the local AKT Reader application."
 readme = "README.md"
 requires-python = ">=3.11"
 authors = [{ name = "Jacob Goldstein" }]

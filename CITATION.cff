@@ -1,5 +1,5 @@
 cff-version: 1.2.0
-title: "AKT Reader Research Edition"
+title: "AKT Reader — Evidence Lab"
 message: "If you use AKT Reader, please cite this software and the specific release or commit SHA."
 type: software
 authors:
@@ -11,12 +11,13 @@ license: MIT
 repository-code: "https://github.com/jakegold1647/aktreader-research"
 url: "https://github.com/jakegold1647/aktreader-research"
 abstract: >-
-  Local, uncertainty-aware extraction and evidence tooling for historical
-  civil-register acts in Russian Cyrillic and Polish. The research edition
-  publishes the schemas, the evaluation-only gold corpus, the blind
-  dual-reader consensus and adjudication method, and the measured local
-  baseline. It makes no validated handwriting-accuracy claim; the single
-  measured baseline is recorded as a weak research-derived before-picture.
+  Evidence, methodology, and reproducibility tooling for local,
+  uncertainty-aware extraction from historical civil-register acts in Russian
+  Cyrillic and Polish. The evidence lab publishes the schemas, the
+  evaluation-only gold corpus, the blind dual-reader consensus and
+  adjudication method, and the measured local baseline. It makes no validated
+  handwriting-accuracy claim; the single measured baseline is recorded as a
+  weak research-derived before-picture.
 keywords:
   - historical records
   - handwritten text recognition

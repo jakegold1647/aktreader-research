@@ -22,9 +22,15 @@ needs no scan, no model, and no network.
 
 ## 1. The variant bridge (P4) — the best entry point
 
-**What:** an expansion library that maps a surname or town name to the forms it
-actually appears under in indexes: Daitch-Mokotoff soundex, transliteration
-round-trips, and documented OCR manglings.
+**Current status:** the first slice now ships. `aktreader variant-key` generates
+proposal-only Daitch–Mokotoff Soundex keys, including ambiguous branches, with
+tests drawn from the published coding chart and this repository's lexicon. See
+[variant retrieval keys](variant-key.md).
+
+**What remains:** an evidence-aware expansion library that maps a surname or
+town name to forms it actually appears under in indexes: attributable
+transliteration round-trips, documented OCR manglings, and explicit ruled-out
+near-misses alongside the phonetic candidates.
 
 **Why it matters:** `Goldsztejn` and `Goldstein` are the same family and will not
 match each other in a search index. This module is what makes a name found.
@@ -35,7 +41,8 @@ test corpus and no private data anywhere near it.
 **Seed data, already in the repo:** `resources/SEROCK_NAME_LEXICON.md` and
 `skills/jewish-onomastics.md` contain attested cases —
 `Pułtusk = POUFTOUSK = RULTUSK = PULSTUK`, `Jarząbek → IAZHOMBEK` (a
-Hebrew-transliteration round trip), `Serock → SEROK`, `Kanarek → KANALEK`.
+Hebrew-transliteration round trip), `Serock → SEROK`, and the ruled-out
+`Kanarek ≠ KANALEK` near-miss.
 
 **The trap to respect, and the thing that makes this interesting:** some
 near-misses are *not* variants. `KANALEK` is flagged in the lexicon as a
@@ -44,9 +51,11 @@ express "close, but ruled out by a document" is worse than none, because it
 merges families. Proposals must be additive and must never rewrite a literal
 recorded name — see the P4 boundary in [SPEC.md](../SPEC.md).
 
-**Scope of a good first PR:** the D-M soundex encoder alone, with tests drawn
-from the lexicon table, is a complete and useful contribution. Do not attempt
-the whole module.
+**Scope of the next good PR:** load `resources/serock_name_lexicon.csv` into
+typed, source-attributed relations such as `ATTESTED_VARIANT` and `RULED_OUT`,
+then combine those relations with the existing phonetic candidates without
+ever replacing a literal input. Keep it separately testable; do not attempt a
+learned matcher in the same change.
 
 ## 2. Date-expression coverage
 
