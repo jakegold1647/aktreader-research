@@ -1,45 +1,67 @@
-# Variant retrieval keys
+# Variant bridge
 
-`aktreader variant-key` generates Daitch–Mokotoff Soundex keys for one or more Latin-script
-names. It is the first separately shippable slice of the P4 variant bridge and requires no scan,
-model, private data, or network access.
+The P4 variant bridge supplies additive search forms for names and towns. It never edits a
+literal input, merges people, or promotes a similarity into an identity conclusion. Both
+commands are local-only and require no scan, model, private data, or network access.
+
+## Evidence-aware proposals
+
+`variant-propose` combines the public Serock lexicon, explicit relationship decisions, and
+Daitch–Mokotoff candidates:
+
+```powershell
+aktreader variant-propose Kanarek --kind surname
+aktreader variant-propose Serock --kind town
+aktreader variant-propose Goldstein --kind surname
+```
+
+The `Kanarek` report returns `Kania` as a `DOCUMENTED_FORM` and `KANALEK` as `RULED_OUT`.
+The `Serock` report keeps `Serok`, `Serotzk`, `Srotsk`, and `Serock u/Narwią` as attested search
+forms while carrying `Sierck-les-Bains` as a false friend. The literal query is returned
+unchanged in every report.
+
+Every proposal has one of four meanings:
+
+| Relation | Meaning |
+| --- | --- |
+| `DOCUMENTED_FORM` | A row appears in the source lexicon's cluster. The cluster may include uncertainty, a married surname, or a pooled reading, so this is not automatically equivalence. |
+| `ATTESTED_VARIANT` | The relationship is explicitly curated in `resources/serock_variant_relations.csv` with source evidence. |
+| `PHONETIC_CANDIDATE` | The query and form share a Daitch–Mokotoff key. This is only a retrieval lead. |
+| `RULED_OUT` | Source evidence explicitly rejects the relationship or reading. This takes precedence over every positive or phonetic proposal for the same pair. |
+
+The loader fails closed when an old `anti-entry` lacks a `RULED_OUT` row with the same source
+citation, when one pair is both attested and ruled out, when a CSV contract drifts, or when a
+declared script does not match its form. Use `--no-phonetic` to return only documented and
+explicit relationships. Cyrillic can be queried exactly; unsupported scripts are never reduced
+to a meaningless all-zero key.
+
+## Raw phonetic keys
+
+`variant-key` exposes the Daitch–Mokotoff encoder directly:
 
 ```powershell
 aktreader variant-key Goldsztejn Goldsztajn
 ```
 
-Both spellings emit `584360`, so the command reports that code under `shared_codes`. The whole
-result is marked `PROPOSAL_ONLY` and includes this warning:
-
-> A shared phonetic key proposes a search candidate; it does not establish that two names
-> identify the same person or family.
-
-That distinction is product behavior. The encoder never edits a literal name, merges records,
-or promotes a phonetic collision into consensus. It only supplies additive search keys for a
-human or a later evidence-aware proposal layer.
-
-## Behavior
-
-- Every code is six digits; ambiguous sounds return every branch.
-- Case, spaces, punctuation, and common Latin diacritics are handled mechanically.
-- Polish `ą` and `ę` retain their Daitch–Mokotoff branching behavior.
-- Unsupported scripts fail closed. Transliterate Cyrillic before requesting a key; silently
-  converting it to `000000` would create meaningless collisions.
-- Multiple inputs are compared and any shared codes are listed, but no identity conclusion is
-  produced.
+Both spellings emit `584360`, so the command reports that code under `shared_codes`. Every code
+is six digits and ambiguous sounds return every branch. Case, spaces, punctuation, and common
+Latin diacritics are handled mechanically; Polish `ą` and `ę` retain their documented branching
+behavior.
 
 The implementation follows the published
 [JewishGen Daitch–Mokotoff coding chart](https://www.jewishgen.org/InfoFiles/soundex.html).
-Regression tests include its documented examples and attested spellings from
-`resources/serock_name_lexicon.csv`.
+Regression tests include its published examples and this repository's attested spellings.
 
-## Known boundary and next P4 slice
+## Data contract and boundary
 
-Phonetic similarity cannot represent source-backed relationships. The repository's lexicon says
-that `KANALEK` is a near-miss, not a `Kanarek` variant; a numeric key alone has no way to carry
-that ruling. Conversely, the encoder finds a shared branch for `Jarząbek` and `IAZHOMBEK`, but
-that still does not prove the names identify one person.
+- `resources/serock_name_lexicon.csv` preserves source rows. Ordinary cluster membership becomes
+  `DOCUMENTED_FORM`, not an inferred equivalence.
+- `resources/serock_variant_relations.csv` contains only explicit `ATTESTED_VARIANT` and
+  `RULED_OUT` decisions, including the P4 town seeds.
+- Output evidence retains `source_tier` and `source_ref` from those files.
+- A shared code or source cluster remains a search aid. It cannot establish that two records
+  identify the same person or family.
 
-The next P4 slice should load the public lexicon into typed, attributable proposals such as
-`ATTESTED_VARIANT`, `PHONETIC_CANDIDATE`, and `RULED_OUT`. It must preserve literal input and
-source references, and must never allow a phonetic candidate to override a ruled-out relation.
+The next useful contribution is a small set of additional explicit relationships backed by a
+public citation and regression tests. Do not infer them from spelling distance or free-text
+notes, and do not bundle a learned matcher into the same change.

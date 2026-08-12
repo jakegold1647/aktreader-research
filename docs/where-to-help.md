@@ -22,15 +22,10 @@ needs no scan, no model, and no network.
 
 ## 1. The variant bridge (P4) — the best entry point
 
-**Current status:** the first slice now ships. `aktreader variant-key` generates
-proposal-only Daitch–Mokotoff Soundex keys, including ambiguous branches, with
-tests drawn from the published coding chart and this repository's lexicon. See
-[variant retrieval keys](variant-key.md).
-
-**What remains:** an evidence-aware expansion library that maps a surname or
-town name to forms it actually appears under in indexes: attributable
-transliteration round-trips, documented OCR manglings, and explicit ruled-out
-near-misses alongside the phonetic candidates.
+**Current status:** two separately usable slices now ship. `variant-key`
+generates branching Daitch–Mokotoff keys. `variant-propose` combines those keys
+with source-attributed forms, explicit variants, and ruled-out near-misses while
+preserving the literal query. See [the variant bridge](variant-key.md).
 
 **Why it matters:** `Goldsztejn` and `Goldstein` are the same family and will not
 match each other in a search index. This module is what makes a name found.
@@ -51,11 +46,11 @@ express "close, but ruled out by a document" is worse than none, because it
 merges families. Proposals must be additive and must never rewrite a literal
 recorded name — see the P4 boundary in [SPEC.md](../SPEC.md).
 
-**Scope of the next good PR:** load `resources/serock_name_lexicon.csv` into
-typed, source-attributed relations such as `ATTESTED_VARIANT` and `RULED_OUT`,
-then combine those relations with the existing phonetic candidates without
-ever replacing a literal input. Keep it separately testable; do not attempt a
-learned matcher in the same change.
+**Scope of the next good PR:** add a small, publicly attributable set of
+relationships to `resources/serock_variant_relations.csv`, including tests that
+show the intended direction and any false friend. Do not infer equivalence from
+the older lexicon's cluster membership or from spelling distance, and do not
+attempt a learned matcher in the same change.
 
 ## 2. Date-expression coverage
 

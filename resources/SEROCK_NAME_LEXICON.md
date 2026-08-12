@@ -120,4 +120,6 @@ Weksler (line-break phantom, W2 act 6) · Majkowski-as-male-deceased (W3 act 39)
 
 ## Machine companion
 `resources\serock_name_lexicon.csv` — one row per (name, variant): normalized_form, type,
-variant, script, source_tier, source_ref.
+variant, script, source_tier, source_ref. Cluster membership is a documented form, not automatic
+equivalence. `resources\serock_variant_relations.csv` carries the smaller set of explicit
+`ATTESTED_VARIANT` and `RULED_OUT` decisions used by the P4 proposal layer.

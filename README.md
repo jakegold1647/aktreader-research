@@ -22,6 +22,7 @@ The project does not claim transcription authority or historical truth. It produ
 - Schemas for register-native, uncertainty-aware act records.
 - A curated evaluation-only gold corpus of 36 historical acts.
 - Privacy preflight, provenance, consensus, validation, and leakage-safe evaluation tooling.
+- Proposal-only name and town retrieval with phonetic, source-attributed, and ruled-out forms.
 - Tests, reproducibility documentation, and a manifest for reviewed open training-source candidates.
 
 ## What is not included
@@ -75,14 +76,17 @@ python3 -m venv .venv
 
 The toolkit is intentionally local-first. Model binaries and weights are supplied and pinned by the researcher; AKT Reader does not download or contact models on its own.
 
-The first separately usable P4 name-retrieval slice is also available without scans or a model:
+The P4 name-retrieval tools are also available without scans or a model:
 
 ```powershell
 .\.venv\Scripts\aktreader.exe variant-key Goldsztejn Goldsztajn
+.\.venv\Scripts\aktreader.exe variant-propose Kanarek --kind surname
+.\.venv\Scripts\aktreader.exe variant-propose Serock --kind town
 ```
 
-It emits Daitch–Mokotoff Soundex keys as `PROPOSAL_ONLY`; a collision is a reason to inspect two
-spellings, never proof of identity. See [variant retrieval keys](docs/variant-key.md).
+Both commands emit `PROPOSAL_ONLY`. `variant-propose` keeps documented forms, curated variants,
+phonetic candidates, and explicit false friends separate; a similarity is never proof of
+identity. See [the variant bridge](docs/variant-key.md).
 
 ## Contributing
 

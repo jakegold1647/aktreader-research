@@ -1,8 +1,9 @@
+import io
 import json
 from pathlib import Path
 
 from aktreader import __version__
-from aktreader.cli import PROJECT_ROOT, build_parser, environment_report, main
+from aktreader.cli import PROJECT_ROOT, _emit_json, build_parser, environment_report, main
 
 
 def test_environment_report_is_honest_about_phase() -> None:
@@ -50,6 +51,29 @@ def test_variant_key_is_machine_readable_and_marks_collisions_as_proposals(capsy
     assert payload["algorithm"] == "Daitch-Mokotoff Soundex"
     assert payload["shared_codes"]
     assert "does not establish" in payload["warning"]
+
+
+def test_variant_propose_preserves_input_and_negative_evidence(capsys) -> None:
+    exit_code = main(["variant-propose", "Kanarek", "--kind", "surname"])
+
+    payload = json.loads(capsys.readouterr().out)
+    by_form = {item["form"]: item for item in payload["proposals"]}
+    assert exit_code == 0
+    assert payload["status"] == "PROPOSAL_ONLY"
+    assert payload["literal_input"] == "Kanarek"
+    assert payload["literal_input_unchanged"] is True
+    assert by_form["KANALEK"]["relation"] == "RULED_OUT"
+    assert by_form["Kania"]["relation"] == "DOCUMENTED_FORM"
+
+
+def test_json_emitter_falls_back_to_ascii_escapes_on_legacy_console() -> None:
+    buffer = io.BytesIO()
+    stream = io.TextIOWrapper(buffer, encoding="ascii")
+
+    _emit_json({"name": "Мяра"}, stream=stream)
+    stream.flush()
+
+    assert json.loads(buffer.getvalue().decode("ascii")) == {"name": "Мяра"}
 
 
 def test_prompt_verify_and_canonical_label_validation_are_machine_readable(

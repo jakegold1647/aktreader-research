@@ -48,16 +48,22 @@ from aktreader.local_reader import LocalReader, LocalReaderError
 from aktreader.prompt import verify_reader_prompt
 from aktreader.validators.dates import validate_dates
 from aktreader.validators.formula import validate_formula_positions
+from aktreader.variant_lexicon import load_variant_lexicon
 from aktreader.variants import daitch_mokotoff_codes
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 
 
 def _emit_json(payload: Mapping[str, Any], *, stream: Any = None) -> None:
-    print(
-        json.dumps(payload, ensure_ascii=False, sort_keys=True, indent=2),
-        file=sys.stdout if stream is None else stream,
-    )
+    target = sys.stdout if stream is None else stream
+    rendered = json.dumps(payload, ensure_ascii=False, sort_keys=True, indent=2)
+    encoding = getattr(target, "encoding", None)
+    if encoding is not None:
+        try:
+            rendered.encode(encoding)
+        except UnicodeEncodeError:
+            rendered = json.dumps(payload, ensure_ascii=True, sort_keys=True, indent=2)
+    print(rendered, file=target)
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -186,6 +192,35 @@ def build_parser() -> argparse.ArgumentParser:
         "names",
         nargs="+",
         help="one or more Latin-script names; quote names containing spaces",
+    )
+
+    variant_propose = subparsers.add_parser(
+        "variant-propose",
+        help="propose source-attributed name or town search forms without rewriting input",
+    )
+    variant_propose.add_argument("name", help="literal name or town form to investigate")
+    variant_propose.add_argument(
+        "--kind",
+        dest="entity_type",
+        choices=("surname", "given", "town"),
+        help="restrict proposals to one entity type",
+    )
+    variant_propose.add_argument(
+        "--lexicon",
+        type=Path,
+        default=PROJECT_ROOT / "resources" / "serock_name_lexicon.csv",
+        help="source-attributed machine lexicon CSV",
+    )
+    variant_propose.add_argument(
+        "--relations",
+        type=Path,
+        default=PROJECT_ROOT / "resources" / "serock_variant_relations.csv",
+        help="explicit attested-variant and ruled-out relationship CSV",
+    )
+    variant_propose.add_argument(
+        "--no-phonetic",
+        action="store_true",
+        help="return documented relationships only, without Daitch-Mokotoff candidates",
     )
     return parser
 
@@ -624,6 +659,25 @@ def _command_variant_key(args: argparse.Namespace) -> int:
     return 0
 
 
+def _command_variant_propose(args: argparse.Namespace) -> int:
+    lexicon_path = local_input_path(args.lexicon, role="variant source lexicon")
+    relation_path = local_input_path(args.relations, role="variant relation lexicon")
+    if not lexicon_path.is_file():
+        raise CliConfigurationError(f"variant source lexicon is not a file: {lexicon_path}")
+    if not relation_path.is_file():
+        raise CliConfigurationError(
+            f"variant relation lexicon is not a file: {relation_path}"
+        )
+    lexicon = load_variant_lexicon(lexicon_path, relation_path)
+    report = lexicon.propose(
+        args.name,
+        entity_type=args.entity_type,
+        include_phonetic=not args.no_phonetic,
+    )
+    _emit_json(report.as_dict())
+    return 0
+
+
 def main(argv: Sequence[str] | None = None) -> int:
     """Run one local-only CLI command with concise, non-secret error reporting."""
     parser = build_parser()
@@ -639,6 +693,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         "adjudicate": _command_adjudicate,
         "eval": _command_eval,
         "variant-key": _command_variant_key,
+        "variant-propose": _command_variant_propose,
     }
     if args.command is None:
         parser.print_help()
