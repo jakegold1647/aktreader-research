@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 import hashlib
+import json
+import os
 from collections import Counter
 from collections.abc import Mapping, Sequence
 from pathlib import Path
@@ -13,12 +15,48 @@ from aktreader.cli_support import (
     local_input_path,
     parse_strict_json_bytes,
 )
-from aktreader.validators.dates import validate_dates
+from aktreader.validators.dates import DATE_VALIDATOR_CODES, DATE_VALIDATOR_VERSION, validate_dates
+
+DATE_AUDIT_SCHEMA_VERSION = "1.0.0"
 
 
 def _path_sort_key(path: Path) -> tuple[tuple[str, ...], tuple[str, ...]]:
     parts = tuple(str(part) for part in path.parts)
     return tuple(part.casefold() for part in parts), parts
+
+
+def _portable_path_context(paths: Sequence[Path]) -> tuple[Path | None, str]:
+    """Choose one common root without embedding that machine-local root in the report."""
+
+    if not paths:
+        return None, "COMMON_ROOT_RELATIVE"
+    try:
+        common = Path(os.path.commonpath([str(path) for path in paths]))
+    except ValueError:
+        return None, "ABSOLUTE_FALLBACK"
+    if len(paths) == 1 or common in paths:
+        common = common.parent
+    return common, "COMMON_ROOT_RELATIVE"
+
+
+def _display_path(path: Path, root: Path | None) -> str:
+    if root is None:
+        return path.as_posix()
+    return path.relative_to(root).as_posix()
+
+
+def _input_manifest_sha256(entries: Sequence[Mapping[str, Any]]) -> str:
+    pins = [
+        {"path": entry["path"], "source_sha256": entry.get("source_sha256")}
+        for entry in entries
+    ]
+    encoded = json.dumps(
+        pins,
+        ensure_ascii=False,
+        sort_keys=True,
+        separators=(",", ":"),
+    ).encode("utf-8")
+    return hashlib.sha256(encoded).hexdigest()
 
 
 def expand_date_audit_inputs(
@@ -98,17 +136,21 @@ def build_date_audit_report(
     parse_failure_count = 0
     skipped_non_label_count = 0
 
-    ordered_paths = tuple(sorted((Path(path) for path in paths), key=_path_sort_key))
+    ordered_paths = tuple(
+        sorted((Path(path).resolve() for path in paths), key=_path_sort_key)
+    )
+    display_root, path_mode = _portable_path_context(ordered_paths)
     for path in ordered_paths:
+        rendered_path = _display_path(path, display_root)
         try:
             raw_bytes = path.read_bytes()
-        except OSError as error:
+        except OSError:
             parse_failure_count += 1
             entries.append(
                 {
-                    "path": str(path),
+                    "path": rendered_path,
                     "status": "PARSE_FAIL",
-                    "error": str(error),
+                    "error": f"cannot read date audit input: {rendered_path}",
                 }
             )
             continue
@@ -117,7 +159,7 @@ def build_date_audit_report(
             payload = parse_strict_json_bytes(
                 raw_bytes,
                 role="date audit JSON file",
-                source=path,
+                source=rendered_path,
             )
             if not isinstance(payload, dict):
                 raise CliConfigurationError("date audit JSON file must contain one JSON object")
@@ -125,7 +167,7 @@ def build_date_audit_report(
             parse_failure_count += 1
             entries.append(
                 {
-                    "path": str(path),
+                    "path": rendered_path,
                     "source_sha256": source_sha256,
                     "status": "PARSE_FAIL",
                     "error": str(error),
@@ -139,7 +181,7 @@ def build_date_audit_report(
             parse_failure_count += 1
             entries.append(
                 {
-                    "path": str(path),
+                    "path": rendered_path,
                     "source_sha256": source_sha256,
                     "status": "PARSE_FAIL",
                     "error": str(error),
@@ -150,7 +192,7 @@ def build_date_audit_report(
             skipped_non_label_count += 1
             entries.append(
                 {
-                    "path": str(path),
+                    "path": rendered_path,
                     "source_sha256": source_sha256,
                     "status": "SKIPPED_NON_LABEL",
                     "reason": "JSON object has neither observations nor fields",
@@ -173,7 +215,7 @@ def build_date_audit_report(
             failing_label_count += 1
         entries.append(
             {
-                "path": str(path),
+                "path": rendered_path,
                 "source_sha256": source_sha256,
                 "status": "FINDINGS" if findings else "PASS",
                 "label_kind": label_kind,
@@ -192,10 +234,15 @@ def build_date_audit_report(
     else:
         status = "PASS"
     return {
+        "schema_version": DATE_AUDIT_SCHEMA_VERSION,
+        "validator_version": DATE_VALIDATOR_VERSION,
+        "validator_codes": list(DATE_VALIDATOR_CODES),
         "status": status,
         "mode": "READ_ONLY",
         "audit_complete": audit_complete,
         "recursive": recursive,
+        "path_mode": path_mode,
+        "input_manifest_sha256": _input_manifest_sha256(entries),
         "file_count": len(ordered_paths),
         "label_count": label_count,
         "finding_count": finding_count,

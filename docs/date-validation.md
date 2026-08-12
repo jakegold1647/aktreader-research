@@ -69,6 +69,15 @@ with neither `observations` nor `fields` are reported as `SKIPPED_NON_LABEL`; ma
 malformed label containers are `PARSE_FAIL`. Every readable file carries its SHA-256 in the
 report.
 
+The artifact contract is versioned by both `schema_version` and `validator_version`, and lists
+the finding codes run by that validator version. File paths use `/` and are relative to the
+common input root, which is deliberately omitted from the report; identical input trees under
+different checkout paths therefore produce identical JSON. Inputs on filesystem roots with no
+common ancestor use the explicit `ABSOLUTE_FALLBACK` path mode instead. An
+`input_manifest_sha256` binds the ordered `(path, source_sha256)` pairs. The CLI validates every
+report against [`date-audit-1.0.0.schema.json`](../schemas/date-audit-1.0.0.schema.json) before
+printing it.
+
 | Exit | Report status | Meaning |
 | ---: | --- | --- |
 | 0 | `PASS` | Every recognized label was readable and produced no date finding. |

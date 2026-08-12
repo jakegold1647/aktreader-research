@@ -12,6 +12,9 @@ from aktreader.date_audit import (
     date_audit_exit_code,
     expand_date_audit_inputs,
 )
+from aktreader.schema import ContractValidationError, validate_instance
+
+DATE_AUDIT_SCHEMA = PROJECT_ROOT / "schemas" / "date-audit-1.0.0.schema.json"
 
 
 def _write_label(path: Path, *, value: str = "1890-01-01") -> None:
@@ -88,6 +91,7 @@ def test_date_audit_surveys_parse_failures_and_non_label_json(tmp_path: Path) ->
     }
     malformed_entry = next(entry for entry in report["files"] if entry["status"] == "PARSE_FAIL")
     assert len(malformed_entry["source_sha256"]) == 64
+    validate_instance(report, DATE_AUDIT_SCHEMA)
     json.dumps(report)
 
 
@@ -196,3 +200,43 @@ def test_frozen_reader_b_date_audit_passes() -> None:
     assert report["finding_count"] == 0
     assert report["parse_failure_count"] == 0
     assert date_audit_exit_code(report) == 0
+    validate_instance(report, DATE_AUDIT_SCHEMA)
+
+
+def test_date_audit_report_is_identical_across_checkout_roots(tmp_path: Path) -> None:
+    reports = []
+    roots = [tmp_path / "first-checkout", tmp_path / "second-checkout"]
+    for root in roots:
+        labels = root / "labels" / "readerB"
+        labels.mkdir(parents=True)
+        _write_label(labels / "b.json")
+        _write_label(labels / "a.json")
+        reports.append(
+            build_date_audit_report(expand_date_audit_inputs((labels,)))
+        )
+
+    assert reports[0] == reports[1]
+    report = reports[0]
+    assert report["schema_version"] == "1.0.0"
+    assert report["validator_version"] == "1.0.0"
+    assert report["validator_codes"] == [
+        "DATE_VALUE_INVALID",
+        "REGISTRATION_BEFORE_EVENT",
+        "DUAL_DATE_GAP",
+        "RELATIVE_DATE_MISMATCH",
+    ]
+    assert report["path_mode"] == "COMMON_ROOT_RELATIVE"
+    assert [entry["path"] for entry in report["files"]] == ["a.json", "b.json"]
+    assert len(report["input_manifest_sha256"]) == 64
+    assert all(str(root) not in json.dumps(report) for root in roots)
+    validate_instance(report, DATE_AUDIT_SCHEMA)
+
+
+def test_date_audit_schema_rejects_undeclared_report_fields(tmp_path: Path) -> None:
+    label = tmp_path / "label.json"
+    _write_label(label)
+    report = build_date_audit_report((label,))
+    report["undeclared"] = True
+
+    with pytest.raises(ContractValidationError, match="Additional properties"):
+        validate_instance(report, DATE_AUDIT_SCHEMA)

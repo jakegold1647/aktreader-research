@@ -97,7 +97,9 @@ anchors. See
 `date-audit` is a read-only corpus survey: explicit files and top-level directory JSON are
 sorted deterministically, malformed input is reported without stopping the remaining survey,
 and recursion is opt-in. The frozen Reader B directory passes. Reader A intentionally exits 1
-with five findings in four legacy labels; the source files are not rewritten.
+with five findings in four legacy labels; the source files are not rewritten. Reports use
+common-root-relative POSIX paths, carry source and input-manifest hashes, identify the exact
+validator set, and are checked against `schemas/date-audit-1.0.0.schema.json` before emission.
 
 The P4 name-retrieval tools are also available without scans or a model:
 

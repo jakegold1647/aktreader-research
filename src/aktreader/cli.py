@@ -403,6 +403,7 @@ def _command_label_validate(args: argparse.Namespace) -> int:
 def _command_date_audit(args: argparse.Namespace) -> int:
     paths = expand_date_audit_inputs(args.paths, recursive=args.recursive)
     report = build_date_audit_report(paths, recursive=args.recursive)
+    validate_instance(report, PROJECT_ROOT / "schemas" / "date-audit-1.0.0.schema.json")
     _emit_json(report)
     return date_audit_exit_code(report)
 

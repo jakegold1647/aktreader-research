@@ -12,6 +12,13 @@ from aktreader.validators.models import ValidationFinding
 from aktreader.validators.support import observations_of, record_id_of
 
 CALENDARS = ("gregorian", "julian")
+DATE_VALIDATOR_VERSION = "1.0.0"
+DATE_VALIDATOR_CODES = (
+    "DATE_VALUE_INVALID",
+    "REGISTRATION_BEFORE_EVENT",
+    "DUAL_DATE_GAP",
+    "RELATIVE_DATE_MISMATCH",
+)
 _DATE_FIELDS = ("registration_date", "event_date")
 _ISO_DATE = re.compile(r"^(?P<year>[0-9]{4})-(?P<month>[0-9]{2})-(?P<day>[0-9]{2})(?P<suffix>.*)$")
 _RELATIVE_PHRASES = (
