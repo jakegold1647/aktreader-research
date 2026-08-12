@@ -136,6 +136,20 @@ unclear-anchor paths respectively. A corpus regression also replays all 19 curre
 top-level Reader B relative-date fixtures and reproduces their normalized calendar values. The
 frozen labels remain unchanged.
 
+`RELATIVE_DATE_MISMATCH` connects that arithmetic to ordinary validation. It is emitted only
+when all of the following are true:
+
+- `event_date.original_script` begins with one of the two exact supported phrase families;
+- both the registration anchor and event observation are `PRESENT` with usable confidence;
+- the anchor declares a Julian or Gregorian calendar and resolves without contradiction; and
+- the stored event value declares at least one of the same calendars but names a different day.
+
+The finding includes the full literal phrase, anchor, stored value, expected value, and a
+per-calendar mismatch. It does not rewrite either field. A scalar date with no declared calendar,
+an unclear field, an inconsistent anchor, or an unsupported phrase remains undecided instead of
+being compared under an assumed calendar. The 19 current Reader B fixtures pass this validator;
+a synthetic wrong-but-valid dual date is retained as the negative regression.
+
 ## Exact dual-calendar check
 
 `DUAL_DATE_GAP` now compares absolute civil days, not a month-level “12 days before 1900 / 13

@@ -74,6 +74,11 @@ complete finding evidence. Reader A's five known prose-value findings are frozen
 historical cases, not starter edits; a contribution should add an attributable fixture
 or validator rule rather than rewrite those labels.
 
+The current validator also emits `RELATIVE_DATE_MISMATCH` when an exact supported phrase,
+usable anchor, and explicitly named stored calendar contradict one another. A proposed phrase
+family therefore needs both a matching case and a wrong-but-valid normalized counterexample;
+tests that cover only the happy path do not establish the validator boundary.
+
 ## 3. Check the CLI documentation against the code
 
 `consensus-merge` is now written up in

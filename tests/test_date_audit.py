@@ -111,6 +111,50 @@ def test_date_audit_serializes_complete_findings(tmp_path: Path) -> None:
     json.dumps(report)
 
 
+def test_date_audit_exposes_relative_date_mismatches(tmp_path: Path) -> None:
+    label = tmp_path / "relative-mismatch.json"
+    label.write_text(
+        json.dumps(
+            {
+                "record_id": "relative-mismatch",
+                "observations": {
+                    "registration_date": {
+                        "value": {
+                            "julian": "1890-02-07",
+                            "gregorian": "1890-02-19",
+                        },
+                        "observation_state": "PRESENT",
+                        "confidence": "PROBABLE",
+                    },
+                    "event_date": {
+                        "value": {
+                            "julian": "1890-02-05",
+                            "gregorian": "1890-02-17",
+                            "resolved_from_relative_phrase": True,
+                        },
+                        "original_script": "вчерашняго числа",
+                        "observation_state": "PRESENT",
+                        "confidence": "PROBABLE",
+                    },
+                },
+            },
+            ensure_ascii=False,
+        ),
+        encoding="utf-8",
+    )
+
+    report = build_date_audit_report((label,))
+
+    assert report["status"] == "FINDINGS"
+    assert report["finding_code_counts"] == {"RELATIVE_DATE_MISMATCH": 1}
+    finding = report["files"][0]["findings"][0]
+    assert finding["field_paths"] == ["registration_date", "event_date"]
+    assert finding["evidence"]["mismatches"]["julian"] == {
+        "stored": "1890-02-05",
+        "expected": "1890-02-06",
+    }
+
+
 def test_frozen_reader_a_date_audit_finds_only_known_prose_values_without_writes() -> None:
     paths = expand_date_audit_inputs((PROJECT_ROOT / "labels" / "readerA",))
     before = {path: path.read_bytes() for path in paths}

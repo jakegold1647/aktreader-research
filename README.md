@@ -88,8 +88,10 @@ Exact Julian/Gregorian conversion is available without a scan or model:
 
 The date validators reject malformed normalized values and compare dual dates as exact civil
 days, including the Julian leap-day transition in 1900. They do not infer that a second date was
-physically written. The relative resolver handles only two source-attested Russian phrase
-families and refuses uncertain anchors. See
+physically written. When a supported relative phrase, usable anchor, and named stored calendar
+do decide the same field, they also flag a contradictory stored date without repairing it. The
+relative resolver handles only two source-attested Russian phrase families and refuses uncertain
+anchors. See
 [civil-date conversion and validation](docs/date-validation.md).
 
 `date-audit` is a read-only corpus survey: explicit files and top-level directory JSON are

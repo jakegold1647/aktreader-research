@@ -14,6 +14,7 @@ from aktreader.validators.dates import (
     validate_dates,
     validate_dual_date_gaps,
     validate_registration_event_order,
+    validate_relative_date_consistency,
 )
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -285,9 +286,74 @@ def test_live_canonical_relative_fixtures_reproduce_their_normalized_dates() -> 
         for calendar in ("gregorian", "julian"):
             if calendar in expected:
                 assert report["resolved_value"][calendar] == expected[calendar]
+        assert validate_relative_date_consistency(fixture) == ()
         checked.append(path.name)
 
     assert len(checked) >= 19
+
+
+def test_relative_date_mismatch_is_flagged_without_rewriting_either_field() -> None:
+    record = _record(
+        {"julian": "1890-02-07", "gregorian": "1890-02-19"},
+        {
+            "julian": "1890-02-05",
+            "gregorian": "1890-02-17",
+            "resolved_from_relative_phrase": True,
+        },
+    )
+    record["observations"]["event_date"]["original_script"] = "вчерашняго числа"
+    before = copy.deepcopy(record)
+
+    findings = validate_relative_date_consistency(record)
+
+    assert [finding.code for finding in findings] == ["RELATIVE_DATE_MISMATCH"]
+    assert findings[0].record_ids == ("synthetic-date-record",)
+    assert findings[0].field_paths == ("registration_date", "event_date")
+    assert findings[0].blocks_confident is True
+    assert findings[0].evidence["phrase_family"] == "PREVIOUS_DAY"
+    assert findings[0].evidence["mismatches"] == {
+        "gregorian": {"stored": "1890-02-17", "expected": "1890-02-18"},
+        "julian": {"stored": "1890-02-05", "expected": "1890-02-06"},
+    }
+    assert [finding.code for finding in validate_dates(record)] == [
+        "RELATIVE_DATE_MISMATCH"
+    ]
+    assert record == before
+
+
+def test_relative_date_match_accepts_time_without_treating_it_as_phrase_text() -> None:
+    record = _record(
+        {"julian": "1890-06-28"},
+        {"julian": "1890-06-28T08:00:00", "resolved_from_relative_phrase": True},
+    )
+    record["observations"]["event_date"]["original_script"] = (
+        "сего числа текущаго года въ восемь часовъ утра"
+    )
+
+    assert validate_relative_date_consistency(record) == ()
+
+
+@pytest.mark.parametrize(
+    ("literal", "anchor_confidence", "event_confidence", "anchor"),
+    [
+        ("вчерашняго числа", "UNCLEAR", "PROBABLE", {"julian": "1890-02-07"}),
+        ("вчерашняго числа", "PROBABLE", "UNCLEAR", {"julian": "1890-02-07"}),
+        ("вчерашняго числа", "PROBABLE", "PROBABLE", "1890-02-07"),
+        ("позавчерашняго числа", "PROBABLE", "PROBABLE", {"julian": "1890-02-07"}),
+    ],
+)
+def test_relative_date_consistency_refuses_when_the_evidence_does_not_decide(
+    literal: str,
+    anchor_confidence: str,
+    event_confidence: str,
+    anchor,
+) -> None:
+    record = _record(anchor, {"julian": "1890-02-01"})
+    record["observations"]["registration_date"]["confidence"] = anchor_confidence
+    record["observations"]["event_date"]["confidence"] = event_confidence
+    record["observations"]["event_date"]["original_script"] = literal
+
+    assert validate_relative_date_consistency(record) == ()
 
 
 def test_attested_same_day_fixture_refuses_unclear_anchor() -> None:

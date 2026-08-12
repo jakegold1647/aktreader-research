@@ -377,6 +377,79 @@ def _calendar_dates(value: Any) -> dict[str, CivilDate]:
     return result
 
 
+def validate_relative_date_consistency(record: Any) -> tuple[ValidationFinding, ...]:
+    """Flag a stored event date that contradicts an exactly resolvable source phrase."""
+
+    observations = observations_of(record)
+    registration = observations.get("registration_date")
+    event = observations.get("event_date")
+    if not isinstance(registration, Mapping) or not isinstance(event, Mapping):
+        return ()
+    if (
+        event.get("observation_state") != "PRESENT"
+        or event.get("confidence") not in _USABLE_ANCHOR_CONFIDENCE
+    ):
+        return ()
+
+    resolution = resolve_relative_date_phrase(
+        event.get("original_script"),
+        registration.get("value"),
+        anchor_state=str(registration.get("observation_state", "")),
+        anchor_confidence=str(registration.get("confidence", "")),
+    )
+    if resolution["status"] != "RESOLVED":
+        return ()
+    expected_value = resolution.get("resolved_value")
+    stored_value = event.get("value")
+    if not isinstance(expected_value, Mapping) or not isinstance(stored_value, Mapping):
+        # A scalar stored date does not say which civil calendar its day belongs to.
+        return ()
+
+    expected_dates = _calendar_dates(expected_value)
+    stored_dates = _calendar_dates(stored_value)
+    shared_calendars = [
+        calendar
+        for calendar in CALENDARS
+        if calendar in expected_dates and calendar in stored_dates
+    ]
+    mismatches = {
+        calendar: {
+            "stored": stored_dates[calendar].isoformat(),
+            "expected": expected_dates[calendar].isoformat(),
+        }
+        for calendar in shared_calendars
+        if stored_dates[calendar] != expected_dates[calendar]
+    }
+    if not mismatches:
+        return ()
+
+    rendered = "; ".join(
+        f"{calendar} stored {values['stored']}, expected {values['expected']}"
+        for calendar, values in mismatches.items()
+    )
+    return (
+        ValidationFinding(
+            code="RELATIVE_DATE_MISMATCH",
+            message=(
+                "event_date contradicts the exact "
+                f"{resolution['phrase_family']} resolution from registration_date: "
+                f"{rendered}. Neither source field was rewritten."
+            ),
+            record_ids=(record_id_of(record),),
+            field_paths=("registration_date", "event_date"),
+            evidence={
+                "literal_phrase": resolution["literal_phrase"],
+                "phrase_family": resolution["phrase_family"],
+                "offset_days": resolution["offset_days"],
+                "anchor": resolution["anchor"],
+                "stored_value": stored_value,
+                "expected_value": expected_value,
+                "mismatches": mismatches,
+            },
+        ),
+    )
+
+
 def _date_value_errors(value: Any) -> tuple[str, ...]:
     if isinstance(value, str):
         try:
@@ -559,4 +632,5 @@ def validate_dates(record: Any) -> tuple[ValidationFinding, ...]:
         validate_date_value_shapes(record)
         + validate_registration_event_order(record)
         + validate_dual_date_gaps(record)
+        + validate_relative_date_consistency(record)
     )
