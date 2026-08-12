@@ -83,7 +83,12 @@ Exact Julian/Gregorian conversion is available without a scan or model:
 .\.venv\Scripts\aktreader.exe date-resolve-relative "вчерашняго числа" `
   --julian 1890-02-07 `
   --gregorian 1890-02-19
-.\.venv\Scripts\aktreader.exe date-audit labels\readerB
+.\.venv\Scripts\aktreader.exe date-audit `
+  --output artifacts\readerB-date-audit.json `
+  labels\readerB
+.\.venv\Scripts\aktreader.exe date-audit-verify `
+  --artifact artifacts\readerB-date-audit.json `
+  labels\readerB
 ```
 
 The date validators reject malformed normalized values and compare dual dates as exact civil
@@ -100,6 +105,9 @@ and recursion is opt-in. The frozen Reader B directory passes. Reader A intentio
 with five findings in four legacy labels; the source files are not rewritten. Reports use
 common-root-relative POSIX paths, carry source and input-manifest hashes, identify the exact
 validator set, and are checked against `schemas/date-audit-1.0.0.schema.json` before emission.
+`date-audit-verify` schema-checks a saved artifact and replays it exactly from the supplied input
+selection. A verification `PASS` proves reproduction; `artifact_status` separately preserves
+whether the original audit passed, found issues, or was incomplete.
 
 The P4 name-retrieval tools are also available without scans or a model:
 

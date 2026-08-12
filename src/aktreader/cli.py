@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import platform
 import sys
@@ -40,6 +41,7 @@ from aktreader.date_audit import (
     build_date_audit_report,
     date_audit_exit_code,
     expand_date_audit_inputs,
+    verify_date_audit_artifact,
 )
 from aktreader.evaluation import evaluate_predictions, load_prediction_records
 from aktreader.grounding import (
@@ -116,6 +118,28 @@ def build_parser() -> argparse.ArgumentParser:
         "--recursive",
         action="store_true",
         help="include JSON files below each directory instead of only its top level",
+    )
+    date_audit.add_argument(
+        "--output",
+        type=Path,
+        help="write a UTF-8 audit artifact outside the audited input tree",
+    )
+    date_audit.add_argument(
+        "--replace-existing",
+        action="store_true",
+        help="explicitly permit atomic replacement of an existing audit artifact",
+    )
+
+    date_audit_verify = subparsers.add_parser(
+        "date-audit-verify",
+        help="verify that a date-audit artifact exactly reproduces from its inputs",
+    )
+    date_audit_verify.add_argument("--artifact", required=True, type=Path)
+    date_audit_verify.add_argument(
+        "paths",
+        nargs="+",
+        type=Path,
+        help="the same label JSON files or directories used to build the artifact",
     )
 
     consensus = subparsers.add_parser(
@@ -404,8 +428,57 @@ def _command_date_audit(args: argparse.Namespace) -> int:
     paths = expand_date_audit_inputs(args.paths, recursive=args.recursive)
     report = build_date_audit_report(paths, recursive=args.recursive)
     validate_instance(report, PROJECT_ROOT / "schemas" / "date-audit-1.0.0.schema.json")
-    _emit_json(report)
+    output_raw = getattr(args, "output", None)
+    replace_existing = getattr(args, "replace_existing", False)
+    if output_raw is None:
+        if replace_existing:
+            raise CliConfigurationError("date-audit --replace-existing requires --output")
+        _emit_json(report)
+        return date_audit_exit_code(report)
+
+    output = local_output_path(output_raw, role="date audit output")
+    if output.suffix.casefold() != ".json":
+        raise CliConfigurationError(f"date audit output must be a JSON file: {output}")
+    if output.exists() and output.is_dir():
+        raise CliConfigurationError(f"date audit output is a directory: {output}")
+    if output.exists() and not replace_existing:
+        raise CliConfigurationError(
+            f"date audit output already exists; use --replace-existing: {output}"
+        )
+    for raw_input in args.paths:
+        source = local_input_path(raw_input, role="date audit input")
+        if output == source or (source.is_dir() and source in output.parents):
+            raise CliConfigurationError(
+                f"date audit output must be outside every audited input tree: {output}"
+            )
+    atomic_write_json(output, report)
+    artifact_sha256 = hashlib.sha256(output.read_bytes()).hexdigest()
+    _emit_json(
+        {
+            "status": report["status"],
+            "output": str(output),
+            "artifact_sha256": artifact_sha256,
+            "schema_version": report["schema_version"],
+            "validator_version": report["validator_version"],
+            "input_manifest_sha256": report["input_manifest_sha256"],
+            "file_count": report["file_count"],
+            "label_count": report["label_count"],
+            "finding_count": report["finding_count"],
+        }
+    )
     return date_audit_exit_code(report)
+
+
+def _command_date_audit_verify(args: argparse.Namespace) -> int:
+    artifact_path = local_input_path(args.artifact, role="date audit artifact")
+    schema_path = PROJECT_ROOT / "schemas" / "date-audit-1.0.0.schema.json"
+    report = verify_date_audit_artifact(
+        artifact_path=artifact_path,
+        raw_paths=args.paths,
+        schema_path=schema_path,
+    )
+    _emit_json(report)
+    return 0
 
 
 def _label_validate_report(args: argparse.Namespace) -> int:
@@ -900,6 +973,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         "prompt-verify": _command_prompt_verify,
         "label-validate": _command_label_validate,
         "date-audit": _command_date_audit,
+        "date-audit-verify": _command_date_audit_verify,
         "consensus-merge": _command_consensus_merge,
         "reader-inspect": _command_reader_inspect,
         "reader-infer": _command_reader_infer,

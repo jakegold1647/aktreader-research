@@ -10,6 +10,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
+from aktreader.artifact import first_json_difference
 from aktreader.schema import validate_instance
 from aktreader.variant_lexicon import (
     VARIANT_ENTITY_TYPES,
@@ -84,49 +85,6 @@ def _load_artifact_snapshot(path: Path) -> tuple[dict[str, Any], str]:
     if not isinstance(payload, dict):
         raise VariantBatchError(f"{path}: variant batch artifact must be a JSON object")
     return payload, digest
-
-
-def _json_pointer_part(value: str) -> str:
-    return value.replace("~", "~0").replace("/", "~1")
-
-
-def _first_json_difference(
-    expected: Any,
-    observed: Any,
-    *,
-    pointer: str = "",
-) -> str | None:
-    """Return the first stable JSON Pointer whose value does not reproduce."""
-
-    if type(expected) is not type(observed):
-        return pointer or "/"
-    if isinstance(expected, dict):
-        for key in sorted(set(expected) | set(observed)):
-            child_pointer = f"{pointer}/{_json_pointer_part(key)}"
-            if key not in expected or key not in observed:
-                return child_pointer
-            difference = _first_json_difference(
-                expected[key],
-                observed[key],
-                pointer=child_pointer,
-            )
-            if difference is not None:
-                return difference
-        return None
-    if isinstance(expected, list):
-        common_length = min(len(expected), len(observed))
-        for index in range(common_length):
-            difference = _first_json_difference(
-                expected[index],
-                observed[index],
-                pointer=f"{pointer}/{index}",
-            )
-            if difference is not None:
-                return difference
-        if len(expected) != len(observed):
-            return f"{pointer}/{common_length}"
-        return None
-    return None if expected == observed else pointer or "/"
 
 
 def load_variant_batch_csv(path: Path) -> tuple[VariantBatchRow, ...]:
@@ -287,7 +245,7 @@ def verify_variant_batch_artifact(
         include_phonetic=include_phonetic,
     )
 
-    difference = _first_json_difference(expected, artifact)
+    difference = first_json_difference(expected, artifact)
     if difference is not None:
         raise VariantBatchError(
             "variant batch artifact does not reproduce exactly from the supplied sources "

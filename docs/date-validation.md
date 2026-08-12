@@ -78,6 +78,31 @@ common ancestor use the explicit `ABSOLUTE_FALLBACK` path mode instead. An
 report against [`date-audit-1.0.0.schema.json`](../schemas/date-audit-1.0.0.schema.json) before
 printing it.
 
+### Save and verify an audit artifact
+
+Write the artifact outside every audited input tree so it cannot become one of its own inputs:
+
+```powershell
+aktreader date-audit `
+  --output artifacts\readerB-date-audit.json `
+  labels\readerB
+
+aktreader date-audit-verify `
+  --artifact artifacts\readerB-date-audit.json `
+  labels\readerB
+```
+
+An existing output is never replaced unless `--replace-existing` is explicit. The verifier reads
+the artifact's recorded `recursive` setting, expands the supplied files or directories under the
+same rule, validates the stored and regenerated reports against the schema, and compares their
+complete JSON values. A mismatch identifies the first stable JSON Pointer. It also rechecks the
+schema, source files, and artifact after replay so a mid-run change cannot pass unnoticed.
+
+Verifier `status: PASS` means `EXACT_REPRODUCTION`; it does not mean the labels were finding-free.
+The original `PASS`, `FINDINGS`, or `INCOMPLETE` value remains visible as `artifact_status`. This
+distinction permits an expected historical-finding report to reproduce successfully without
+misrepresenting it as clean data.
+
 | Exit | Report status | Meaning |
 | ---: | --- | --- |
 | 0 | `PASS` | Every recognized label was readable and produced no date finding. |

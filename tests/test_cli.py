@@ -86,6 +86,91 @@ def test_date_audit_cli_reports_malformed_json_as_incomplete(tmp_path: Path, cap
     assert report["parse_failure_count"] == 1
 
 
+def test_date_audit_cli_writes_and_exactly_verifies_an_artifact(
+    tmp_path: Path,
+    capsys,
+) -> None:
+    labels = tmp_path / "labels"
+    labels.mkdir()
+    label = labels / "one.json"
+    label.write_text(
+        json.dumps(
+            {
+                "record_id": "one",
+                "observations": {
+                    "registration_date": {
+                        "value": "1890-01-01",
+                        "observation_state": "PRESENT",
+                        "confidence": "PROBABLE",
+                    }
+                },
+            }
+        ),
+        encoding="utf-8",
+    )
+    artifact = tmp_path / "artifacts" / "date-audit.json"
+
+    audit_exit = main(["date-audit", "--output", str(artifact), str(labels)])
+    audit_summary = json.loads(capsys.readouterr().out)
+    verify_exit = main(
+        ["date-audit-verify", "--artifact", str(artifact), str(labels)]
+    )
+    verification = json.loads(capsys.readouterr().out)
+
+    assert audit_exit == verify_exit == 0
+    assert audit_summary["status"] == "PASS"
+    assert Path(audit_summary["output"]) == artifact
+    assert len(audit_summary["artifact_sha256"]) == 64
+    assert verification["status"] == "PASS"
+    assert verification["verification"] == "EXACT_REPRODUCTION"
+    assert verification["artifact_sha256"] == audit_summary["artifact_sha256"]
+
+
+def test_date_audit_cli_refuses_output_inside_input_tree(tmp_path: Path, capsys) -> None:
+    labels = tmp_path / "labels"
+    labels.mkdir()
+    label = labels / "one.json"
+    label.write_text('{"observations": {}}', encoding="utf-8")
+    output = labels / "audit.json"
+
+    exit_code = main(["date-audit", "--output", str(output), str(labels)])
+
+    assert exit_code == 2
+    assert "outside every audited input tree" in capsys.readouterr().err
+    assert not output.exists()
+
+
+def test_date_audit_cli_does_not_replace_an_artifact_without_opt_in(
+    tmp_path: Path,
+    capsys,
+) -> None:
+    label = tmp_path / "one.json"
+    label.write_text('{"observations": {}}', encoding="utf-8")
+    artifact = tmp_path / "artifact.json"
+    artifact.write_text("sentinel", encoding="utf-8")
+
+    exit_code = main(["date-audit", "--output", str(artifact), str(label)])
+
+    assert exit_code == 2
+    assert "use --replace-existing" in capsys.readouterr().err
+    assert artifact.read_text(encoding="utf-8") == "sentinel"
+
+    replace_exit = main(
+        [
+            "date-audit",
+            "--output",
+            str(artifact),
+            "--replace-existing",
+            str(label),
+        ]
+    )
+    summary = json.loads(capsys.readouterr().out)
+
+    assert replace_exit == 0
+    assert summary["status"] == "PASS"
+    assert json.loads(artifact.read_text(encoding="utf-8"))["mode"] == "READ_ONLY"
+
+
 def test_date_convert_refuses_to_silently_drop_a_time(capsys) -> None:
     exit_code = main(
         ["date-convert", "1890-01-01T12:00:00", "--from-calendar", "julian"]

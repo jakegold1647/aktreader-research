@@ -10,14 +10,20 @@ from collections.abc import Mapping, Sequence
 from pathlib import Path
 from typing import Any
 
+from aktreader.artifact import first_json_difference
 from aktreader.cli_support import (
     CliConfigurationError,
     local_input_path,
     parse_strict_json_bytes,
 )
+from aktreader.schema import ContractValidationError, validate_instance
 from aktreader.validators.dates import DATE_VALIDATOR_CODES, DATE_VALIDATOR_VERSION, validate_dates
 
 DATE_AUDIT_SCHEMA_VERSION = "1.0.0"
+
+
+class DateAuditError(ValueError):
+    """Raised when a date-audit artifact cannot be reproduced exactly."""
 
 
 def _path_sort_key(path: Path) -> tuple[tuple[str, ...], tuple[str, ...]]:
@@ -262,3 +268,100 @@ def date_audit_exit_code(report: Mapping[str, Any]) -> int:
     if report.get("status") == "FINDINGS":
         return 1
     return 2
+
+
+def _load_artifact_snapshot(path: Path) -> tuple[dict[str, Any], str]:
+    try:
+        raw_bytes = path.read_bytes()
+    except OSError as error:
+        raise DateAuditError(f"cannot read date audit artifact {path}: {error}") from error
+    artifact_sha256 = hashlib.sha256(raw_bytes).hexdigest()
+    try:
+        payload = parse_strict_json_bytes(
+            raw_bytes,
+            role="date audit artifact",
+            source=path,
+        )
+    except CliConfigurationError as error:
+        raise DateAuditError(str(error)) from error
+    if not isinstance(payload, dict):
+        raise DateAuditError(f"date audit artifact must contain one JSON object: {path}")
+    return payload, artifact_sha256
+
+
+def _require_sources_unchanged(paths: Sequence[Path], report: Mapping[str, Any]) -> None:
+    entries = report.get("files")
+    if not isinstance(entries, list) or len(entries) != len(paths):
+        raise DateAuditError("date audit report/source cardinality changed during verification")
+    for path, entry in zip(paths, entries, strict=True):
+        if not isinstance(entry, Mapping):
+            raise DateAuditError("date audit report file entry changed during verification")
+        expected_sha256 = entry.get("source_sha256")
+        try:
+            raw_bytes = path.read_bytes()
+        except OSError:
+            if expected_sha256 is None:
+                continue
+            raise DateAuditError(f"date audit input changed while being verified: {path}") from None
+        if expected_sha256 is None or hashlib.sha256(raw_bytes).hexdigest() != expected_sha256:
+            raise DateAuditError(f"date audit input changed while being verified: {path}")
+
+
+def verify_date_audit_artifact(
+    *,
+    artifact_path: Path,
+    raw_paths: Sequence[Path | str],
+    schema_path: Path,
+) -> dict[str, Any]:
+    """Prove that a stored audit is schema-valid and exactly reproducible from its inputs."""
+
+    artifact_source = local_input_path(artifact_path, role="date audit artifact")
+    schema_source = local_input_path(schema_path, role="date audit schema")
+    if not artifact_source.is_file():
+        raise DateAuditError(f"date audit artifact is not a file: {artifact_source}")
+    if not schema_source.is_file():
+        raise DateAuditError(f"date audit schema is not a file: {schema_source}")
+    artifact, artifact_sha256 = _load_artifact_snapshot(artifact_source)
+    schema_sha256 = hashlib.sha256(schema_source.read_bytes()).hexdigest()
+    try:
+        validate_instance(artifact, schema_source)
+    except ContractValidationError as error:
+        raise DateAuditError(str(error)) from error
+
+    recursive = artifact["recursive"]
+    paths = expand_date_audit_inputs(raw_paths, recursive=recursive)
+    expected = build_date_audit_report(paths, recursive=recursive)
+    try:
+        validate_instance(expected, schema_source)
+    except ContractValidationError as error:
+        raise DateAuditError(f"regenerated date audit violates its schema: {error}") from error
+    difference = first_json_difference(expected, artifact)
+    if difference is not None:
+        raise DateAuditError(
+            "date audit artifact does not reproduce exactly from the supplied inputs "
+            f"at {difference}"
+        )
+
+    _require_sources_unchanged(paths, expected)
+    if hashlib.sha256(schema_source.read_bytes()).hexdigest() != schema_sha256:
+        raise DateAuditError(f"date audit schema changed while being verified: {schema_source}")
+    if hashlib.sha256(artifact_source.read_bytes()).hexdigest() != artifact_sha256:
+        raise DateAuditError(f"date audit artifact changed while being verified: {artifact_source}")
+
+    return {
+        "status": "PASS",
+        "verification": "EXACT_REPRODUCTION",
+        "artifact_status": artifact["status"],
+        "artifact": str(artifact_source),
+        "artifact_sha256": artifact_sha256,
+        "schema_version": artifact["schema_version"],
+        "schema_sha256": schema_sha256,
+        "validator_version": artifact["validator_version"],
+        "validator_codes": artifact["validator_codes"],
+        "recursive": recursive,
+        "path_mode": artifact["path_mode"],
+        "input_manifest_sha256": artifact["input_manifest_sha256"],
+        "file_count": artifact["file_count"],
+        "label_count": artifact["label_count"],
+        "finding_count": artifact["finding_count"],
+    }

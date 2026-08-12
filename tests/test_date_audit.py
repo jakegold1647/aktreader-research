@@ -1,16 +1,20 @@
 from __future__ import annotations
 
+import hashlib
 import json
 from pathlib import Path
 
 import pytest
 
+import aktreader.date_audit as date_audit_module
 from aktreader.cli import PROJECT_ROOT
 from aktreader.cli_support import CliConfigurationError
 from aktreader.date_audit import (
+    DateAuditError,
     build_date_audit_report,
     date_audit_exit_code,
     expand_date_audit_inputs,
+    verify_date_audit_artifact,
 )
 from aktreader.schema import ContractValidationError, validate_instance
 
@@ -34,6 +38,23 @@ def _write_label(path: Path, *, value: str = "1890-01-01") -> None:
         ),
         encoding="utf-8",
     )
+
+
+def _write_audit_artifact(
+    artifact_path: Path,
+    inputs: tuple[Path, ...],
+    *,
+    recursive: bool = False,
+) -> dict:
+    report = build_date_audit_report(
+        expand_date_audit_inputs(inputs, recursive=recursive),
+        recursive=recursive,
+    )
+    artifact_path.write_text(
+        json.dumps(report, ensure_ascii=False, sort_keys=True, indent=2) + "\n",
+        encoding="utf-8",
+    )
+    return report
 
 
 def test_expand_date_audit_inputs_is_sorted_and_recursion_is_explicit(tmp_path: Path) -> None:
@@ -240,3 +261,207 @@ def test_date_audit_schema_rejects_undeclared_report_fields(tmp_path: Path) -> N
 
     with pytest.raises(ContractValidationError, match="Additional properties"):
         validate_instance(report, DATE_AUDIT_SCHEMA)
+
+
+def test_date_audit_verifier_replays_an_artifact_under_a_different_root(
+    tmp_path: Path,
+) -> None:
+    source_labels = tmp_path / "source-checkout" / "labels"
+    replay_labels = tmp_path / "replay-checkout" / "labels"
+    source_labels.mkdir(parents=True)
+    replay_labels.mkdir(parents=True)
+    for root in (source_labels, replay_labels):
+        _write_label(root / "b.json")
+        _write_label(root / "a.json")
+    artifact_path = tmp_path / "date-audit.json"
+    artifact = _write_audit_artifact(artifact_path, (source_labels,))
+
+    report = verify_date_audit_artifact(
+        artifact_path=artifact_path,
+        raw_paths=(replay_labels,),
+        schema_path=DATE_AUDIT_SCHEMA,
+    )
+
+    assert report["status"] == "PASS"
+    assert report["verification"] == "EXACT_REPRODUCTION"
+    assert report["artifact_status"] == "PASS"
+    assert report["artifact_sha256"] == hashlib.sha256(
+        artifact_path.read_bytes()
+    ).hexdigest()
+    assert report["input_manifest_sha256"] == artifact["input_manifest_sha256"]
+
+
+def test_date_audit_verifier_replays_recursive_selection(tmp_path: Path) -> None:
+    labels = tmp_path / "labels"
+    nested = labels / "nested"
+    nested.mkdir(parents=True)
+    _write_label(labels / "top.json")
+    _write_label(nested / "deep.json")
+    artifact_path = tmp_path / "recursive-audit.json"
+    _write_audit_artifact(artifact_path, (labels,), recursive=True)
+
+    report = verify_date_audit_artifact(
+        artifact_path=artifact_path,
+        raw_paths=(labels,),
+        schema_path=DATE_AUDIT_SCHEMA,
+    )
+
+    assert report["status"] == "PASS"
+    assert report["recursive"] is True
+    assert report["file_count"] == 2
+
+
+def test_date_audit_verification_pass_is_distinct_from_artifact_findings(
+    tmp_path: Path,
+) -> None:
+    label = tmp_path / "bad-date.json"
+    _write_label(label, value="1890-02-30")
+    artifact_path = tmp_path / "date-audit.json"
+    _write_audit_artifact(artifact_path, (label,))
+
+    report = verify_date_audit_artifact(
+        artifact_path=artifact_path,
+        raw_paths=(label,),
+        schema_path=DATE_AUDIT_SCHEMA,
+    )
+
+    assert report["status"] == "PASS"
+    assert report["verification"] == "EXACT_REPRODUCTION"
+    assert report["artifact_status"] == "FINDINGS"
+    assert report["finding_count"] == 1
+
+
+def test_date_audit_verifier_reports_first_changed_input_pointer(tmp_path: Path) -> None:
+    labels = tmp_path / "labels"
+    labels.mkdir()
+    label = labels / "one.json"
+    _write_label(label)
+    artifact_path = tmp_path / "date-audit.json"
+    _write_audit_artifact(artifact_path, (labels,))
+    _write_label(label, value="1890-02-30")
+
+    with pytest.raises(DateAuditError, match=r"at /failing_label_count$"):
+        verify_date_audit_artifact(
+            artifact_path=artifact_path,
+            raw_paths=(labels,),
+            schema_path=DATE_AUDIT_SCHEMA,
+        )
+
+
+def test_date_audit_verifier_rejects_schema_valid_artifact_tampering(tmp_path: Path) -> None:
+    label = tmp_path / "one.json"
+    _write_label(label)
+    artifact_path = tmp_path / "date-audit.json"
+    artifact = _write_audit_artifact(artifact_path, (label,))
+    artifact["input_manifest_sha256"] = "0" * 64
+    artifact_path.write_text(json.dumps(artifact), encoding="utf-8")
+
+    with pytest.raises(DateAuditError, match=r"at /input_manifest_sha256$"):
+        verify_date_audit_artifact(
+            artifact_path=artifact_path,
+            raw_paths=(label,),
+            schema_path=DATE_AUDIT_SCHEMA,
+        )
+
+
+@pytest.mark.parametrize(
+    ("contents", "message"),
+    [
+        (b"\xff", "artifact is not UTF-8"),
+        (b"{", "artifact is not valid JSON"),
+        (b"[]", "artifact must contain one JSON object"),
+        (b'{"value": NaN}', "non-standard JSON number"),
+    ],
+)
+def test_date_audit_verifier_rejects_non_strict_json(
+    tmp_path: Path,
+    contents: bytes,
+    message: str,
+) -> None:
+    label = tmp_path / "one.json"
+    _write_label(label)
+    artifact_path = tmp_path / "date-audit.json"
+    artifact_path.write_bytes(contents)
+
+    with pytest.raises(DateAuditError, match=message):
+        verify_date_audit_artifact(
+            artifact_path=artifact_path,
+            raw_paths=(label,),
+            schema_path=DATE_AUDIT_SCHEMA,
+        )
+
+
+def test_date_audit_verifier_rejects_duplicate_artifact_keys(tmp_path: Path) -> None:
+    label = tmp_path / "one.json"
+    _write_label(label)
+    artifact_path = tmp_path / "date-audit.json"
+    _write_audit_artifact(artifact_path, (label,))
+    rendered = artifact_path.read_text(encoding="utf-8")
+    artifact_path.write_text(
+        rendered.replace(
+            '"schema_version": "1.0.0",',
+            '"schema_version": "1.0.0",\n  "schema_version": "1.0.0",',
+            1,
+        ),
+        encoding="utf-8",
+    )
+
+    with pytest.raises(DateAuditError, match="duplicate JSON key"):
+        verify_date_audit_artifact(
+            artifact_path=artifact_path,
+            raw_paths=(label,),
+            schema_path=DATE_AUDIT_SCHEMA,
+        )
+
+
+def test_date_audit_verifier_rejects_source_drift_during_replay(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    label = tmp_path / "one.json"
+    _write_label(label)
+    artifact_path = tmp_path / "date-audit.json"
+    _write_audit_artifact(artifact_path, (label,))
+    real_build = date_audit_module.build_date_audit_report
+
+    def drifting_build(paths, *, recursive=False):
+        report = real_build(paths, recursive=recursive)
+        _write_label(label, value="1890-02-30")
+        return report
+
+    monkeypatch.setattr(date_audit_module, "build_date_audit_report", drifting_build)
+
+    with pytest.raises(DateAuditError, match="input changed while being verified"):
+        verify_date_audit_artifact(
+            artifact_path=artifact_path,
+            raw_paths=(label,),
+            schema_path=DATE_AUDIT_SCHEMA,
+        )
+
+
+def test_date_audit_verifier_rejects_artifact_drift_during_replay(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    label = tmp_path / "one.json"
+    _write_label(label)
+    artifact_path = tmp_path / "date-audit.json"
+    _write_audit_artifact(artifact_path, (label,))
+    real_source_check = date_audit_module._require_sources_unchanged
+
+    def drifting_source_check(paths, report):
+        real_source_check(paths, report)
+        artifact_path.write_text("{}", encoding="utf-8")
+
+    monkeypatch.setattr(
+        date_audit_module,
+        "_require_sources_unchanged",
+        drifting_source_check,
+    )
+
+    with pytest.raises(DateAuditError, match="artifact changed while being verified"):
+        verify_date_audit_artifact(
+            artifact_path=artifact_path,
+            raw_paths=(label,),
+            schema_path=DATE_AUDIT_SCHEMA,
+        )
