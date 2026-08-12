@@ -9,6 +9,7 @@ import pytest
 
 import aktreader.cli as cli_module
 import aktreader.local_reader as local_reader_module
+from aktreader import COMMAND_NAME
 from aktreader.checkpoint import CheckpointStore, JobStatus
 from aktreader.cli import main
 from aktreader.cli_support import load_local_reader_config
@@ -273,7 +274,7 @@ def test_reader_config_rejects_credentials_and_urls_before_reader_construction(
 
     monkeypatch.setattr(cli_module, "LocalReader", forbidden_reader)
     assert main(["reader-inspect", "--config", str(config)]) == 2
-    assert "aktreader: error:" in capsys.readouterr().err.lower()
+    assert f"{COMMAND_NAME}: error:" in capsys.readouterr().err.lower()
 
 
 def test_batch_run_resumes_without_rerunning_matching_success(

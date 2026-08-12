@@ -2,7 +2,18 @@ import io
 import json
 from pathlib import Path
 
-from aktreader import __version__
+import pytest
+
+from aktreader import (
+    COMMAND_NAME,
+    DISTRIBUTION_NAME,
+    LEGACY_COMMAND_NAME,
+    PACKAGE_NAMESPACE,
+    PROJECT_NAME,
+    PROJECT_ROLE,
+    REPOSITORY_URL,
+    __version__,
+)
 from aktreader.cli import PROJECT_ROOT, _emit_json, build_parser, environment_report, main
 
 
@@ -10,6 +21,15 @@ def test_environment_report_is_honest_about_phase() -> None:
     report = environment_report()
 
     assert report["aktreader_version"] == __version__
+    assert report["project_name"] == PROJECT_NAME == "AKT Reader - Evidence Lab"
+    assert report["project_role"] == PROJECT_ROLE == "evidence-lab"
+    assert report["distribution_name"] == DISTRIBUTION_NAME == "aktreader-research"
+    assert report["package_namespace"] == PACKAGE_NAMESPACE == "aktreader"
+    assert report["command_name"] == COMMAND_NAME == "aktreader-lab"
+    assert report["legacy_command_name"] == LEGACY_COMMAND_NAME == "aktreader"
+    assert report["repository_url"] == REPOSITORY_URL
+    assert report["source_checkout_required"] is True
+    assert report["standalone_distribution_ready"] is False
     assert report["phase"] == "P2"
     assert report["pipeline_available"] is True
     assert report["python_supported"] is True
@@ -23,8 +43,37 @@ def test_doctor_json_is_machine_readable(capsys) -> None:
     payload = json.loads(capsys.readouterr().out)
     assert exit_code == 0
     assert payload["phase"] == "P2"
+    assert payload["project_role"] == "evidence-lab"
+    assert payload["distribution_name"] == "aktreader-research"
+    assert payload["command_name"] == "aktreader-lab"
+    assert payload["legacy_command_name"] == "aktreader"
+    assert payload["source_checkout_required"] is True
+    assert payload["standalone_distribution_ready"] is False
     assert payload["pipeline_available"] is True
     assert payload["network_required"] is False
+
+
+def test_doctor_human_output_names_the_evidence_lab(capsys) -> None:
+    exit_code = main(["doctor"])
+
+    output = capsys.readouterr().out
+    assert exit_code == 0
+    assert output.startswith("AKT Reader - Evidence Lab 0.3.0.dev0\n")
+    assert "Repository role: evidence-lab\n" in output
+    assert "distribution aktreader-research | package aktreader | command aktreader-lab" in output
+    assert "Legacy command alias: aktreader\n" in output
+    assert f"Repository: {REPOSITORY_URL}\n" in output
+    assert "source checkout required; standalone wheel not ready\n" in output
+
+
+def test_version_names_the_evidence_lab_distribution(capsys) -> None:
+    with pytest.raises(SystemExit) as raised:
+        main(["--version"])
+
+    assert raised.value.code == 0
+    assert capsys.readouterr().out == (
+        "aktreader-lab 0.3.0.dev0 (AKT Reader Evidence Lab; dist: aktreader-research)\n"
+    )
 
 
 def test_no_command_prints_help(capsys) -> None:
@@ -57,7 +106,9 @@ def test_date_convert_rejects_invalid_declared_calendar_date(capsys) -> None:
     exit_code = main(["date-convert", "1900-02-29", "--from-calendar", "gregorian"])
 
     assert exit_code == 2
-    assert "invalid" in capsys.readouterr().err
+    stderr = capsys.readouterr().err
+    assert stderr.startswith("aktreader-lab: error: ")
+    assert "invalid" in stderr
 
 
 def test_date_audit_cli_distinguishes_findings_from_clean_labels(capsys) -> None:

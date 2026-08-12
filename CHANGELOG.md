@@ -5,6 +5,21 @@ releases of the runnable [AKT Reader application](https://github.com/jakegold164
 the independent
 [Congress Poland Registers benchmark dataset](https://github.com/jakegold1647/congress-poland-registers).
 
+## Unreleased
+
+Development version: `0.3.0.dev0`.
+
+### Changed
+
+- Source checkouts now install under the unambiguous `aktreader-research` distribution name.
+- `aktreader-lab` is the preferred Evidence Lab command; `aktreader` remains a compatibility
+  alias. The Python namespace remains shared with the Application, so separate environments are
+  still required.
+- `doctor` and `--version` now identify the Evidence Lab, its repository, and its source-only
+  packaging status explicitly.
+- Existing pre-rename editable environments should be recreated so stale `aktreader`
+  distribution metadata does not survive beside `aktreader-research`.
+
 ## [0.2.0] - 2026-08-12
 
 ### Added

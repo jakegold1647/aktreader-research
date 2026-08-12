@@ -3,8 +3,8 @@ revision = 3
 requires-python = ">=3.11"
 
 [[package]]
-name = "aktreader"
-version = "0.2.0"
+name = "aktreader-research"
+version = "0.3.0.dev0"
 source = { editable = "." }
 dependencies = [
     { name = "jsonschema" },

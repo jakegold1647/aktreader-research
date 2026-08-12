@@ -11,7 +11,16 @@ from collections.abc import Mapping, Sequence
 from pathlib import Path
 from typing import Any
 
-from aktreader import __version__
+from aktreader import (
+    COMMAND_NAME,
+    DISTRIBUTION_NAME,
+    LEGACY_COMMAND_NAME,
+    PACKAGE_NAMESPACE,
+    PROJECT_NAME,
+    PROJECT_ROLE,
+    REPOSITORY_URL,
+    __version__,
+)
 from aktreader.adjudication import generate_packet, ingest_answers
 from aktreader.batch import (
     BatchJob,
@@ -82,10 +91,17 @@ def _emit_json(payload: Mapping[str, Any], *, stream: Any = None) -> None:
 def build_parser() -> argparse.ArgumentParser:
     """Build the local-only parser without import-time runtime execution."""
     parser = argparse.ArgumentParser(
-        prog="aktreader",
-        description="Local-only, uncertainty-honest civil-register extraction (P2).",
+        prog=COMMAND_NAME,
+        description="AKT Reader Evidence Lab: Local-only evidence and reproducibility tooling.",
     )
-    parser.add_argument("--version", action="version", version=f"%(prog)s {__version__}")
+    parser.add_argument(
+        "--version",
+        action="version",
+        version=(
+            f"%(prog)s {__version__} "
+            f"(AKT Reader Evidence Lab; dist: {DISTRIBUTION_NAME})"
+        ),
+    )
     subparsers = parser.add_subparsers(dest="command")
 
     doctor = subparsers.add_parser("doctor", help="report the local pipeline environment")
@@ -359,6 +375,15 @@ def environment_report() -> dict[str, object]:
     supported = sys.version_info >= (3, 11)
     return {
         "aktreader_version": __version__,
+        "project_name": PROJECT_NAME,
+        "project_role": PROJECT_ROLE,
+        "distribution_name": DISTRIBUTION_NAME,
+        "package_namespace": PACKAGE_NAMESPACE,
+        "command_name": COMMAND_NAME,
+        "legacy_command_name": LEGACY_COMMAND_NAME,
+        "repository_url": REPOSITORY_URL,
+        "source_checkout_required": True,
+        "standalone_distribution_ready": False,
         "implementation": platform.python_implementation(),
         "python_version": platform.python_version(),
         "python_supported": supported,
@@ -374,7 +399,17 @@ def _command_doctor(args: argparse.Namespace) -> int:
     if args.json:
         _emit_json(report)
     else:
-        print(f"AKTREADER {report['aktreader_version']} ({report['phase']} local pipeline)")
+        print(f"{report['project_name']} {report['aktreader_version']}")
+        print(f"Repository role: {report['project_role']}")
+        print(
+            "Runtime identity: "
+            f"distribution {report['distribution_name']} | "
+            f"package {report['package_namespace']} | command {report['command_name']}"
+        )
+        print(f"Legacy command alias: {report['legacy_command_name']}")
+        print(f"Repository: {report['repository_url']}")
+        print("Packaging status: source checkout required; standalone wheel not ready")
+        print(f"Pipeline phase: {report['phase']}")
         print(f"Python {report['python_version']} ({report['implementation']})")
         print(f"Python >= 3.11: {'yes' if report['python_supported'] else 'no'}")
         print("Reader backend: local open weights only")
@@ -994,8 +1029,11 @@ def main(argv: Sequence[str] | None = None) -> int:
     try:
         return handlers[args.command](args)
     except KeyboardInterrupt:
-        print("aktreader: interrupted; checkpoint state was preserved", file=sys.stderr)
+        print(
+            f"{COMMAND_NAME}: interrupted; checkpoint state was preserved",
+            file=sys.stderr,
+        )
         return 130
     except (CliConfigurationError, LocalReaderError, OSError, TypeError, ValueError) as error:
-        print(f"aktreader: error: {error}", file=sys.stderr)
+        print(f"{COMMAND_NAME}: error: {error}", file=sys.stderr)
         return 2

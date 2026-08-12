@@ -1,6 +1,6 @@
 [project]
-name = "aktreader"
-version = "0.2.0"
+name = "aktreader-research"
+version = "0.3.0.dev0"
 description = "Evidence, evaluation, and reproducibility tooling for the local AKT Reader application."
 readme = "README.md"
 requires-python = ">=3.11"
@@ -17,6 +17,9 @@ Issues = "https://github.com/jakegold1647/aktreader-research/issues"
 Changelog = "https://github.com/jakegold1647/aktreader-research/blob/main/CHANGELOG.md"
 
 [project.scripts]
+# ``aktreader-lab`` is the unambiguous command. Keep the v0.2.0 name as an alias
+# for source-checkout workflows that already use it.
+aktreader-lab = "aktreader.cli:main"
 aktreader = "aktreader.cli:main"
 
 [project.optional-dependencies]

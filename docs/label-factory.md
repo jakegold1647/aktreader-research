@@ -16,7 +16,7 @@ two reliable frontier readers were available.
    under the v1.4 grounded schema.
 4. An independent verifier checks every field that matters. It does not inherit unsupported
    assertions merely because they are well formed.
-5. Residual ambiguity becomes an `aktreader adjudicate` question with candidates, image evidence,
+5. Residual ambiguity becomes an `aktreader-lab adjudicate` question with candidates, image evidence,
    structural checks, and explicit neither/can't-tell exits.
 6. A human decision closes what the evidence supports; unresolved fields remain unclear.
 7. Every source file is retained unchanged and content-addressed. Corrections are new events,
@@ -122,7 +122,7 @@ memorization from contaminating the benchmark.
 The 29 July read-only gold audit found 0/36 stored acts fully image-attested. The earlier 0%
 machine-transcription score for gold was a category error and is superseded by the gold-specific
 attestation report. Existing records are preserved as research-derived evidence, while
-`aktreader adjudicate` becomes the only path to new benchmark-eligible gold.
+`aktreader-lab adjudicate` becomes the only path to new benchmark-eligible gold.
 
 No label or training export may contain material from Yad Vashem, USHMM, Arolsen, Geneteka, or
 JRI-Poland indexes. The factory labels only user-supplied permitted register scans.

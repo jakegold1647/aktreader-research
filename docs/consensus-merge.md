@@ -1,13 +1,13 @@
 # Merging two blind reader labels
 
-`aktreader consensus-merge` combines exactly two independently produced reader
+`aktreader-lab consensus-merge` combines exactly two independently produced reader
 labels for the same record into one consensus record. It sits between blind
 reading and adjudication: reading produces labels, this command finds where the
 readers disagree, and [`adjudicate`](adjudication.md) turns the residue into
 human questions.
 
 ```powershell
-aktreader consensus-merge `
+aktreader-lab consensus-merge `
   labels\readerA\serock-1877-birth-1.json `
   labels\readerB\serock-1877-birth-1.json `
   --output labels\consensus\serock-1877-birth-1.json

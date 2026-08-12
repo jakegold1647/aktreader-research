@@ -9,8 +9,8 @@ literal Russian or Polish wording, including relative phrases and dual day-words
 `date-convert` performs local, deterministic civil-calendar arithmetic:
 
 ```powershell
-aktreader date-convert 1890-01-01 --from-calendar julian
-aktreader date-convert 1900-02-29 --from-calendar julian
+aktreader-lab date-convert 1890-01-01 --from-calendar julian
+aktreader-lab date-convert 1900-02-29 --from-calendar julian
 ```
 
 The first command returns Gregorian `1890-01-13`. The second accepts 29 February 1900 in the
@@ -57,9 +57,9 @@ quietly pass as a validated date.
 `date-audit` exposes the same date validators as a deterministic, read-only corpus survey:
 
 ```powershell
-aktreader date-audit labels\readerB
-aktreader date-audit labels\readerA
-aktreader date-audit labels\readerA\serock-1890-death-16.json
+aktreader-lab date-audit labels\readerB
+aktreader-lab date-audit labels\readerA
+aktreader-lab date-audit labels\readerA\serock-1890-death-16.json
 ```
 
 An explicit file must be JSON. A directory contributes only its top-level JSON files unless
@@ -83,11 +83,11 @@ printing it.
 Write the artifact outside every audited input tree so it cannot become one of its own inputs:
 
 ```powershell
-aktreader date-audit `
+aktreader-lab date-audit `
   --output artifacts\readerB-date-audit.json `
   labels\readerB
 
-aktreader date-audit-verify `
+aktreader-lab date-audit-verify `
   --artifact artifacts\readerB-date-audit.json `
   labels\readerB
 ```
@@ -136,7 +136,7 @@ Russian time clause into `05:00`.
 Supply at least one explicit calendar anchor:
 
 ```powershell
-aktreader date-resolve-relative "вчерашняго числа" `
+aktreader-lab date-resolve-relative "вчерашняго числа" `
   --julian 1890-02-07 `
   --gregorian 1890-02-19
 ```

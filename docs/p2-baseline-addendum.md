@@ -264,7 +264,7 @@ protocol is:
 
 1. one blind reader produces a v1.4-or-later label with continuous original-order transcription;
 2. a fresh, blind same-vendor session independently verifies every field that matters;
-3. `aktreader adjudicate` packages every residue without revealing prior answers to the decider;
+3. `aktreader-lab adjudicate` packages every residue without revealing prior answers to the decider;
 4. a human makes the final decision and supplies the applicable attestation.
 
 Same-vendor verification is weaker than cross-vendor diversity, and correlated blind spots remain

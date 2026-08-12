@@ -39,7 +39,7 @@ maintainer decision.
 
 ## Exact failure inventory
 
-`aktreader label-validate --report` on the eight frozen labels returns status `UNGROUNDED`
+`aktreader-lab label-validate --report` on the eight frozen labels returns status `UNGROUNDED`
 for all eight, with nine violating observations. Every violation carries the single code
 `PRESENT_RU_ORIGINAL_SCRIPT_HAS_NO_CYRILLIC`. No wave-006 observation fails the
 transcription-substring gate: each disputed excerpt does occur verbatim in that label's

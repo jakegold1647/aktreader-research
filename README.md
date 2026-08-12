@@ -4,6 +4,9 @@
 > and reproducibility tooling. It is not the reader application and it is not the independent
 > benchmark dataset.
 
+The Python distribution is named `aktreader-research`. Its recommended console command is
+`aktreader-lab`; the older `aktreader` command remains as a compatibility alias.
+
 [![CI](https://github.com/jakegold1647/aktreader-research/actions/workflows/ci.yml/badge.svg)](https://github.com/jakegold1647/aktreader-research/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/code-MIT-blue.svg)](LICENSE)
 [![Data: CC BY 4.0](https://img.shields.io/badge/data-CC%20BY%204.0-lightgrey.svg)](DATA_GOVERNANCE.md)
@@ -44,9 +47,15 @@ The application and evidence lab have separate histories on purpose. The applica
 reader; this repository holds the evidence about how well it reads. The benchmark is independent
 of both and is still under construction.
 
-The Application and Evidence Lab currently share the `aktreader` Python package namespace and
-command name. Use a separate virtual environment for each repository; installing both into one
-environment is not supported.
+The Application and Evidence Lab still share the `aktreader` Python package namespace, so use a
+separate virtual environment for each repository. Installing both into one environment is not
+supported. Their distribution and preferred command identities are now distinct:
+`aktreader-app` / `aktreader` for the Application and
+`aktreader-research` / `aktreader-lab` for the Evidence Lab.
+
+If this checkout was already installed before the distribution rename, recreate its virtual
+environment. Package installers treat `aktreader` and `aktreader-research` as different
+distributions and may otherwise leave stale metadata or command wrappers behind.
 
 ## Research use
 
@@ -69,7 +78,7 @@ Windows (PowerShell):
 python -m venv .venv
 .\.venv\Scripts\python.exe -m pip install -e ".[dev]"
 .\.venv\Scripts\python.exe -m pytest
-.\.venv\Scripts\aktreader.exe doctor
+.\.venv\Scripts\aktreader-lab.exe doctor
 ```
 
 Linux and macOS:
@@ -78,7 +87,7 @@ Linux and macOS:
 python3 -m venv .venv
 .venv/bin/python -m pip install -e ".[dev]"
 .venv/bin/python -m pytest
-.venv/bin/aktreader doctor
+.venv/bin/aktreader-lab doctor
 ```
 
 The toolkit is intentionally local-first. Model binaries and weights are supplied and pinned by the researcher; AKT Reader does not download or contact models on its own.
@@ -86,14 +95,14 @@ The toolkit is intentionally local-first. Model binaries and weights are supplie
 Exact Julian/Gregorian conversion is available without a scan or model:
 
 ```powershell
-.\.venv\Scripts\aktreader.exe date-convert 1900-02-29 --from-calendar julian
-.\.venv\Scripts\aktreader.exe date-resolve-relative "вчерашняго числа" `
+.\.venv\Scripts\aktreader-lab.exe date-convert 1900-02-29 --from-calendar julian
+.\.venv\Scripts\aktreader-lab.exe date-resolve-relative "вчерашняго числа" `
   --julian 1890-02-07 `
   --gregorian 1890-02-19
-.\.venv\Scripts\aktreader.exe date-audit `
+.\.venv\Scripts\aktreader-lab.exe date-audit `
   --output artifacts\readerB-date-audit.json `
   labels\readerB
-.\.venv\Scripts\aktreader.exe date-audit-verify `
+.\.venv\Scripts\aktreader-lab.exe date-audit-verify `
   --artifact artifacts\readerB-date-audit.json `
   labels\readerB
 ```
@@ -119,13 +128,13 @@ whether the original audit passed, found issues, or was incomplete.
 The P4 name-retrieval tools are also available without scans or a model:
 
 ```powershell
-.\.venv\Scripts\aktreader.exe variant-key Goldsztejn Goldsztajn
-.\.venv\Scripts\aktreader.exe variant-propose Kanarek --kind surname
-.\.venv\Scripts\aktreader.exe variant-propose Serock --kind town
-.\.venv\Scripts\aktreader.exe variant-batch `
+.\.venv\Scripts\aktreader-lab.exe variant-key Goldsztejn Goldsztajn
+.\.venv\Scripts\aktreader-lab.exe variant-propose Kanarek --kind surname
+.\.venv\Scripts\aktreader-lab.exe variant-propose Serock --kind town
+.\.venv\Scripts\aktreader-lab.exe variant-batch `
   --input examples\variant-batch.example.csv `
   --output variant-proposals.json
-.\.venv\Scripts\aktreader.exe variant-batch-verify `
+.\.venv\Scripts\aktreader-lab.exe variant-batch-verify `
   --artifact variant-proposals.json `
   --input examples\variant-batch.example.csv
 ```

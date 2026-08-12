@@ -10,9 +10,9 @@ commands are local-only and require no scan, model, private data, or network acc
 Daitch–Mokotoff candidates:
 
 ```powershell
-aktreader variant-propose Kanarek --kind surname
-aktreader variant-propose Serock --kind town
-aktreader variant-propose Goldstein --kind surname
+aktreader-lab variant-propose Kanarek --kind surname
+aktreader-lab variant-propose Serock --kind town
+aktreader-lab variant-propose Goldstein --kind surname
 ```
 
 The `Kanarek` report returns `Kania` as a `DOCUMENTED_FORM` and `KANALEK` as `RULED_OUT`.
@@ -52,7 +52,7 @@ must explicitly choose `surname`, `given`, or `town`. The command does not infer
 spelling or filename.
 
 ```powershell
-aktreader variant-batch `
+aktreader-lab variant-batch `
   --input examples\variant-batch.example.csv `
   --output variant-proposals.json
 ```
@@ -76,7 +76,7 @@ The verifier checks a saved artifact against the bundled schema and then regener
 proposal from the named CSV and source lexicons:
 
 ```powershell
-aktreader variant-batch-verify `
+aktreader-lab variant-batch-verify `
   --artifact variant-proposals.json `
   --input examples\variant-batch.example.csv
 ```
@@ -96,7 +96,7 @@ inputs; it does not promote any proposal into an identity claim.
 `variant-key` exposes the Daitch–Mokotoff encoder directly:
 
 ```powershell
-aktreader variant-key Goldsztejn Goldsztajn
+aktreader-lab variant-key Goldsztejn Goldsztajn
 ```
 
 Both spellings emit `584360`, so the command reports that code under `shared_codes`. Every code

@@ -164,7 +164,7 @@ The runnable, content-pinned configuration is
 separate full-label and reduced model-facing schema pins:
 
 ```powershell
-.\.venv\Scripts\aktreader.exe reader-inspect `
+.\.venv\Scripts\aktreader-lab.exe reader-inspect `
   --config examples\p2-baseline.local-reader.json
 ```
 

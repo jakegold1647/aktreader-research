@@ -1,6 +1,6 @@
 # Human adjudication packets
 
-`aktreader adjudicate` turns the residue left by reading and verification into a small,
+`aktreader-lab adjudicate` turns the residue left by reading and verification into a small,
 self-contained question set. It does not ask a human to transcribe a register. A question can
 use a same-hand **letterform choice** (a disputed glyph plus 3–6 uncontested examples of each
 candidate) or **visual corroboration** (a field crop beside repeated occurrences and independent
@@ -22,7 +22,7 @@ Prepare `human_check/waves/wave-003.json` under
 `schemas/adjudication-wave-1.0.0.schema.json`, then run:
 
 ```powershell
-aktreader adjudicate --wave 003
+aktreader-lab adjudicate --wave 003
 ```
 
 Use `--spec` or `--output-dir` for an explicitly different local path. The generator verifies
@@ -61,7 +61,7 @@ Open `packet.html` locally. “Neither / something else” and “Can’t tell�
 not failures. The page downloads an answers JSON; it never submits data.
 
 ```powershell
-aktreader adjudicate --wave 003 `
+aktreader-lab adjudicate --wave 003 `
   --answers .\human_check\generated\wave-003\adjudication-wave-003.answers.json
 ```
 
