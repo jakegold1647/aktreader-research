@@ -55,4 +55,7 @@ python -m aktreader eval `
 ```
 
 Preserve predictions, checkpoint, runtime fingerprint, prompt/schema hashes, and the generated
-report together. Missing predictions reduce coverage; they are never backfilled from gold.
+report together. Missing predictions reduce coverage; they are never backfilled from gold. Each
+supplied prediction must be one UTF-8 JSON object with a non-empty string `record_id`. Duplicate
+object keys, non-standard numbers such as `NaN`, and duplicate record IDs fail the run instead of
+producing an ambiguous report.

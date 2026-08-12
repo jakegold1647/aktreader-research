@@ -513,3 +513,29 @@ def test_eval_writes_real_holdout_guarded_report(
     assert report["benchmark"] == "SerockBench-v1"
     assert report["holdout_integrity"]["status"] == "PASS"
     assert json.loads(output.read_text(encoding="utf-8")) == report
+
+
+def test_eval_reports_invalid_prediction_shape_without_traceback(
+    tmp_path: Path,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    prediction = tmp_path / "prediction.json"
+    prediction.write_text("[]", encoding="utf-8")
+    output = tmp_path / "eval.json"
+
+    exit_code = main(
+        [
+            "eval",
+            "--predictions",
+            str(prediction),
+            "--output",
+            str(output),
+        ]
+    )
+
+    captured = capsys.readouterr()
+    assert exit_code == 2
+    assert "prediction.json" in captured.err
+    assert "one JSON object" in captured.err
+    assert "Traceback" not in captured.err
+    assert not output.exists()
