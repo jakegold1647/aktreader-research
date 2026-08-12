@@ -8,6 +8,8 @@ The public evidence lab is at
 [jakegold1647/aktreader-research](https://github.com/jakegold1647/aktreader-research). The
 runnable reader application is a separate repository at
 [jakegold1647/aktreader](https://github.com/jakegold1647/aktreader).
+The independent benchmark dataset is being developed separately at
+[jakegold1647/congress-poland-registers](https://github.com/jakegold1647/congress-poland-registers).
 
 ## Research question
 
@@ -24,6 +26,8 @@ The repository provides:
 - a curated 36-act evaluation-only gold corpus;
 - dual-reader, consensus, uncertainty-grading, and privacy-preflight tooling;
 - local-reader boundaries that do not download models, call hosted APIs, or handle credentials;
+- source-attributed name and town variant proposals with reproducible batch verification;
+- exact civil-date conversion and portable, replay-verifiable corpus audits;
 - reproducibility guidance and a public test suite.
 
 The project has a real development history: the public edition preserves the substantive commit history of the working project after removing private operational material. The public history is scrubbed of reviewer-session traces, internal coordination, source crops, and provider-specific identifiers.
@@ -71,3 +75,4 @@ The best first conversation is not a request to endorse the system. It is a requ
 - [Evaluation report](docs/p2-evaluation.md) — documented diagnostics and the measured local baseline
 - [P2 local baseline addendum](docs/p2-baseline-addendum.md) — the measured before-picture and its limits
 - [Citation record](CITATION.cff) — how to cite the software
+- [Changelog](CHANGELOG.md) — release-by-release changes and known limits

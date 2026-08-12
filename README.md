@@ -44,6 +44,10 @@ The application and evidence lab have separate histories on purpose. The applica
 reader; this repository holds the evidence about how well it reads. The benchmark is independent
 of both and is still under construction.
 
+The Application and Evidence Lab currently share the `aktreader` Python package namespace and
+command name. Use a separate virtual environment for each repository; installing both into one
+environment is not supported.
+
 ## Research use
 
 The initial pilot concerns civil registers from partitioned Poland. The gold records are evaluation-only; they are not training data and are not presented as a population-level historical reconstruction. The repository records source locations and artifact hashes where available, but does not redistribute source scans.
@@ -55,6 +59,9 @@ Read [data governance](DATA_GOVERNANCE.md), [reproducibility notes](REPRODUCIBIL
 ## Install and verify
 
 Python 3.11 or newer is required; CI runs 3.11 and 3.13 on Linux and Windows.
+This is currently a source-checkout release: clone this repository and use the editable install
+below. Standalone wheels and source distributions are not published because several commands
+intentionally read versioned schemas, lexicons, and labels from the repository checkout.
 
 Windows (PowerShell):
 
@@ -137,7 +144,9 @@ Challenges to the evaluation methodology are treated as first-class contribution
 
 ## Citation
 
-If you use AKT Reader, cite the software record in [CITATION.cff](CITATION.cff) and identify the repository release and commit SHA used in your work. Cite the archival collection separately according to its own requirements.
+If you use the Evidence Lab, cite the software record in [CITATION.cff](CITATION.cff) and identify
+the repository release and commit SHA used in your work. Cite the AKT Reader application and the
+archival collection separately when they are part of the work.
 
 ## License and data terms
 

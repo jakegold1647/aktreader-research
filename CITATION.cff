@@ -5,8 +5,8 @@ type: software
 authors:
   - family-names: Goldstein
     given-names: Jacob
-version: "0.1.0"
-date-released: "2026-08-04"
+version: "0.2.0"
+date-released: "2026-08-12"
 license: MIT
 repository-code: "https://github.com/jakegold1647/aktreader-research"
 url: "https://github.com/jakegold1647/aktreader-research"

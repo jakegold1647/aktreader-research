@@ -1,17 +1,36 @@
 # Public release scope
 
-This research edition is a clean public snapshot of AKT Reader. It includes the local extraction toolkit, schemas, curated evaluation corpus, anonymized reproducibility labels, and a runnable public test suite.
+This document covers **AKT Reader — Evidence Lab v0.2.0**. It is the evidence,
+methodology, and reproducibility repository—not the runnable
+[AKT Reader application](https://github.com/jakegold1647/aktreader) and not the independent
+[Congress Poland Registers benchmark dataset](https://github.com/jakegold1647/congress-poland-registers).
 
-It excludes private operational coordination, reviewer/session traces, source-scan crops, and private audit-dependent test cases. These exclusions do not change the project’s claim boundaries: no publication-grade handwriting accuracy claim exists. The one measured local baseline run is recorded as a weak research-derived before-picture in [the P2 local baseline addendum](docs/p2-baseline-addendum.md).
+The release includes the validation library and CLI, schemas, curated evaluation corpus,
+anonymized reproducibility labels, proposal-only variant utilities, civil-date tools, portable
+audit artifacts, and exact replay verifiers. See [the changelog](CHANGELOG.md) for the release
+delta.
 
-Verification for the initial snapshot (commit `b050856`):
+It excludes private operational coordination, reviewer/session traces, source-scan crops,
+model weights, and private audit-dependent test cases. These exclusions do not change the
+project's claim boundaries: no publication-grade handwriting accuracy claim exists. The one
+measured local baseline run is recorded as a weak research-derived before-picture in
+[the P2 local baseline addendum](docs/p2-baseline-addendum.md).
+
+Every release candidate must pass:
 
 ```text
-204 passed
-python -m build: passed
+uv lock --locked
+python -m pytest
+python -m ruff check .
+python -m tools.check_dependency_licenses
+uv build
 ```
 
-Later public commits extend the suite; the current expected state is that
-`python -m pytest`, `python -m ruff check .`, and
-`python -m tools.check_dependency_licenses` all pass, enforced by CI on every
-push to `main`.
+CI repeats lint, tests, and dependency-license checks on Python 3.11 and 3.13, on both Linux and
+Windows. Build integrity and a passing test suite establish repository integrity; they do not
+establish handwriting accuracy.
+
+v0.2.0 is distributed through GitHub's repository source archives. The wheel and Python source
+distribution are built only as metadata/regression checks and are not attached to the release:
+they do not yet include the repository-root schemas, lexicons, labels, and other assets required
+by several commands. Use a clone and editable install as documented in the README.

@@ -1,6 +1,6 @@
 [project]
 name = "aktreader"
-version = "0.1.0"
+version = "0.2.0"
 description = "Evidence, evaluation, and reproducibility tooling for the local AKT Reader application."
 readme = "README.md"
 requires-python = ">=3.11"
@@ -9,6 +9,12 @@ dependencies = [
     "jsonschema>=4.23,<5",
     "pillow>=11,<13",
 ]
+
+[project.urls]
+Homepage = "https://github.com/jakegold1647/aktreader-research"
+Repository = "https://github.com/jakegold1647/aktreader-research"
+Issues = "https://github.com/jakegold1647/aktreader-research/issues"
+Changelog = "https://github.com/jakegold1647/aktreader-research/blob/main/CHANGELOG.md"
 
 [project.scripts]
 aktreader = "aktreader.cli:main"
