@@ -47,7 +47,7 @@ from aktreader.labels import LabelValidationError, load_reader_label
 from aktreader.local_reader import LocalReader, LocalReaderError
 from aktreader.prompt import verify_reader_prompt
 from aktreader.schema import validate_instance
-from aktreader.validators.dates import validate_dates
+from aktreader.validators.dates import convert_civil_date, validate_dates
 from aktreader.validators.formula import validate_formula_positions
 from aktreader.variant_batch import build_variant_batch, verify_variant_batch_artifact
 from aktreader.variant_lexicon import load_variant_lexicon
@@ -185,6 +185,18 @@ def build_parser() -> argparse.ArgumentParser:
     )
     evaluate.add_argument("--training-clerk-years", type=Path)
     evaluate.add_argument("--output", type=Path)
+
+    date_convert = subparsers.add_parser(
+        "date-convert",
+        help="convert one exact ISO date between the Julian and Gregorian calendars",
+    )
+    date_convert.add_argument("date", help="exact date in YYYY-MM-DD form")
+    date_convert.add_argument(
+        "--from-calendar",
+        required=True,
+        choices=("julian", "gregorian"),
+        help="calendar used by the input date",
+    )
 
     variant_key = subparsers.add_parser(
         "variant-key",
@@ -680,6 +692,11 @@ def _command_eval(args: argparse.Namespace) -> int:
     return 0
 
 
+def _command_date_convert(args: argparse.Namespace) -> int:
+    _emit_json(convert_civil_date(args.date, from_calendar=args.from_calendar))
+    return 0
+
+
 def _command_variant_key(args: argparse.Namespace) -> int:
     results = [
         {"input": name, "codes": list(daitch_mokotoff_codes(name))}
@@ -818,6 +835,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         "batch-run": _command_batch_run,
         "adjudicate": _command_adjudicate,
         "eval": _command_eval,
+        "date-convert": _command_date_convert,
         "variant-key": _command_variant_key,
         "variant-propose": _command_variant_propose,
         "variant-batch": _command_variant_batch,

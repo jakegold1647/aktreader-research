@@ -79,6 +79,11 @@ including the mother's maiden name, spouse and spouse's parents, declarants and 
 including ages and occupations, officiant, signatures, marginalia, survivors, and
 marriage-specific banns, permissions, and rabbi fields.
 
+Normalized dates are validated independently of their literal-script evidence. The
+[`date-convert`](date-validation.md) utility uses exact Julian/Gregorian civil-day conversion;
+the validator flags malformed confident date values, impossible dual-calendar pairs, and a
+registration that predates its event without rewriting any field.
+
 ## Local Reader boundary
 
 `LocalReader` invokes a checksum-pinned `llama-cli` executable with explicit model, multimodal

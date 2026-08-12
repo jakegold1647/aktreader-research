@@ -42,6 +42,33 @@ def test_parser_exposes_no_api_key_or_network_backend_options() -> None:
     assert "hosted" not in help_text
 
 
+def test_date_convert_is_machine_readable_and_preserves_evidence_boundary(capsys) -> None:
+    exit_code = main(["date-convert", "1900-02-29", "--from-calendar", "julian"])
+
+    payload = json.loads(capsys.readouterr().out)
+    assert exit_code == 0
+    assert payload["status"] == "EXACT_CALENDAR_CONVERSION"
+    assert payload["input"] == {"calendar": "julian", "date": "1900-02-29"}
+    assert payload["equivalent"] == {"calendar": "gregorian", "date": "1900-03-13"}
+    assert "does not establish" in payload["warning"]
+
+
+def test_date_convert_rejects_invalid_declared_calendar_date(capsys) -> None:
+    exit_code = main(["date-convert", "1900-02-29", "--from-calendar", "gregorian"])
+
+    assert exit_code == 2
+    assert "invalid" in capsys.readouterr().err
+
+
+def test_date_convert_refuses_to_silently_drop_a_time(capsys) -> None:
+    exit_code = main(
+        ["date-convert", "1890-01-01T12:00:00", "--from-calendar", "julian"]
+    )
+
+    assert exit_code == 2
+    assert "without a time" in capsys.readouterr().err
+
+
 def test_variant_key_is_machine_readable_and_marks_collisions_as_proposals(capsys) -> None:
     exit_code = main(["variant-key", "Goldsztejn", "Goldsztajn"])
 

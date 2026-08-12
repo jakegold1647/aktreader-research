@@ -76,6 +76,16 @@ python3 -m venv .venv
 
 The toolkit is intentionally local-first. Model binaries and weights are supplied and pinned by the researcher; AKT Reader does not download or contact models on its own.
 
+Exact Julian/Gregorian conversion is available without a scan or model:
+
+```powershell
+.\.venv\Scripts\aktreader.exe date-convert 1900-02-29 --from-calendar julian
+```
+
+The date validators reject malformed normalized values and compare dual dates as exact civil
+days, including the Julian leap-day transition in 1900. They do not infer that a second date was
+physically written. See [civil-date conversion and validation](docs/date-validation.md).
+
 The P4 name-retrieval tools are also available without scans or a model:
 
 ```powershell

@@ -57,11 +57,15 @@ attempt a learned matcher in the same change.
 
 ## 2. Date-expression coverage
 
-`src/aktreader/validators/dates.py` (127 lines) parses the date expressions these
-registers use, where dates are written as words in Russian and Polish and follow
-the Napoleonic act formula documented in `skills/napoleonic-act-formula.md`
-(register span 1874–1904). Additional attested date phrasings, with tests, are
-useful and require only the formula document.
+`src/aktreader/validators/dates.py` validates normalized ISO values and exact
+Julian/Gregorian equivalence; it deliberately does **not** parse the Russian or
+Polish words in `original_script`. See [the date contract](date-validation.md).
+
+An attested phrase parser is still useful, but it needs a narrow evidence-backed
+scope: one documented phrase family, literal fixtures, normalized expectations,
+and tests that preserve rather than discard the original wording. Relative forms
+such as `вчерашняго числа` must fail closed when their registration-date anchor is
+unclear. Do not add a general word-number parser from remembered vocabulary.
 
 ## 3. Check the CLI documentation against the code
 
