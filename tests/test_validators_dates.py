@@ -1,4 +1,5 @@
 import copy
+import json
 from pathlib import Path
 
 import pytest
@@ -8,6 +9,7 @@ from aktreader.validators.dates import (
     CivilDateError,
     convert_civil_date,
     parse_civil_date,
+    resolve_relative_date_phrase,
     validate_date_value_shapes,
     validate_dates,
     validate_dual_date_gaps,
@@ -215,6 +217,225 @@ def test_frozen_legacy_prose_dates_are_exposed_as_findings(
     }
 
     assert field_path in invalid_paths
+
+
+def test_attested_yesterday_fixture_resolves_without_mutating_label() -> None:
+    fixture = json.loads(
+        (ROOT / "labels" / "readerB" / "serock-1890-death-4.json").read_text(encoding="utf-8")
+    )
+    registration = fixture["observations"]["registration_date"]
+    event = fixture["observations"]["event_date"]
+    registration_before = copy.deepcopy(registration)
+    event_before = copy.deepcopy(event)
+
+    report = resolve_relative_date_phrase(
+        event["original_script"],
+        registration["value"],
+        anchor_state=registration["observation_state"],
+        anchor_confidence=registration["confidence"],
+    )
+
+    assert report["status"] == "RESOLVED"
+    assert report["phrase_family"] == "PREVIOUS_DAY"
+    assert report["literal_phrase"] == "вчерашняго числа"
+    assert report["literal_phrase_unchanged"] is True
+    assert report["anchor"] == {
+        "gregorian": "1890-02-19",
+        "julian": "1890-02-07",
+    }
+    assert report["resolved_value"] == {
+        "gregorian": event["value"]["gregorian"],
+        "julian": event["value"]["julian"],
+        "resolved_from_relative_phrase": True,
+    }
+    assert registration == registration_before
+    assert event == event_before
+
+
+def test_live_canonical_relative_fixtures_reproduce_their_normalized_dates() -> None:
+    checked: list[str] = []
+    for path in sorted((ROOT / "labels" / "readerB").glob("serock-1890-death-*.json")):
+        fixture = json.loads(path.read_text(encoding="utf-8"))
+        observations = fixture.get("observations")
+        if not isinstance(observations, dict):
+            continue
+        registration = observations.get("registration_date", {})
+        event = observations.get("event_date", {})
+        literal = event.get("original_script")
+        if not isinstance(literal, str) or not literal.startswith(
+            ("сего числа", "вчерашняго числа")
+        ):
+            continue
+        if (
+            registration.get("observation_state") != "PRESENT"
+            or registration.get("confidence") == "UNCLEAR"
+        ):
+            continue
+
+        report = resolve_relative_date_phrase(
+            literal,
+            registration.get("value"),
+            anchor_state=registration.get("observation_state"),
+            anchor_confidence=registration.get("confidence"),
+        )
+
+        assert report["status"] == "RESOLVED", (path, report)
+        expected = event.get("value")
+        assert isinstance(expected, dict)
+        for calendar in ("gregorian", "julian"):
+            if calendar in expected:
+                assert report["resolved_value"][calendar] == expected[calendar]
+        checked.append(path.name)
+
+    assert len(checked) >= 19
+
+
+def test_attested_same_day_fixture_refuses_unclear_anchor() -> None:
+    label = load_reader_label(ROOT / "labels" / "readerA" / "serock-1890-death-16.json")
+    registration = label.observations["registration_date"]
+    event = label.observations["event_date"]
+
+    report = resolve_relative_date_phrase(
+        event["original_script"],
+        registration["value"],
+        anchor_state=registration["observation_state"],
+        anchor_confidence=registration["confidence"],
+    )
+
+    assert report["status"] == "UNRESOLVED"
+    assert report["phrase_family"] == "SAME_DAY"
+    assert report["literal_phrase"] == "сего числа въ пять часовъ утра"
+    assert report["reason"] == "ANCHOR_UNCLEAR"
+    assert report["resolved_value"] is None
+
+
+def test_same_day_preserves_full_literal_time_clause_but_does_not_parse_it() -> None:
+    literal = "сего числа текущаго года въ восемь часовъ утра"
+
+    report = resolve_relative_date_phrase(literal, {"julian": "1890-06-28"})
+
+    assert report["status"] == "RESOLVED"
+    assert report["literal_phrase"] == literal
+    assert report["resolved_value"] == {
+        "julian": "1890-06-28",
+        "resolved_from_relative_phrase": True,
+    }
+    assert "08:00" not in str(report["resolved_value"])
+
+
+@pytest.mark.parametrize(
+    ("anchor", "expected"),
+    [
+        ({"gregorian": "1890-01-01"}, {"gregorian": "1889-12-31"}),
+        ({"julian": "1890-01-01"}, {"julian": "1889-12-31"}),
+        ({"gregorian": "1900-03-01"}, {"gregorian": "1900-02-28"}),
+        ({"julian": "1900-03-01"}, {"julian": "1900-02-29"}),
+        (
+            {"gregorian": "1900-03-14", "julian": "1900-03-01"},
+            {"gregorian": "1900-03-13", "julian": "1900-02-29"},
+        ),
+    ],
+)
+def test_yesterday_handles_rollover_in_each_declared_calendar(anchor, expected) -> None:
+    report = resolve_relative_date_phrase("вчерашняго числа", anchor)
+
+    assert report["status"] == "RESOLVED"
+    assert report["offset_days"] == -1
+    assert report["resolved_value"] == {
+        **expected,
+        "resolved_from_relative_phrase": True,
+    }
+
+
+@pytest.mark.parametrize(
+    "literal",
+    [
+        "позавчерашняго числа",
+        "вчерашнего числа",
+        "Вчерашняго числа",
+        "[unclear: вчерашняго числа?]",
+        "невчерашняго числа",
+        "вче-рашняго числа",
+        "",
+    ],
+)
+def test_unsupported_or_uncertain_phrase_fails_without_fuzzy_matching(literal: str) -> None:
+    report = resolve_relative_date_phrase(literal, {"julian": "1890-01-01"})
+
+    assert report["status"] == "UNRESOLVED"
+    assert report["phrase_family"] is None
+    assert report["literal_phrase"] == literal
+    assert report["reason"] == "UNSUPPORTED_PHRASE"
+
+
+@pytest.mark.parametrize(
+    ("anchor", "kwargs", "reason"),
+    [
+        (None, {}, "ANCHOR_MISSING"),
+        ({}, {}, "ANCHOR_MISSING"),
+        ("1890-01-01", {}, "ANCHOR_CALENDAR_UNSPECIFIED"),
+        ({"date": "1890-01-01"}, {}, "ANCHOR_CALENDAR_UNSPECIFIED"),
+        ({"julian": "not-a-date"}, {}, "ANCHOR_INVALID"),
+        ({"gregorian": "1900-02-29"}, {}, "ANCHOR_INVALID"),
+        ({"julian": "1890-01-01T12:00:00"}, {}, "ANCHOR_INVALID"),
+        (
+            {"date": "1890-01-13", "gregorian": "1890-01-13"},
+            {},
+            "ANCHOR_INVALID",
+        ),
+        (
+            {"gregorian": "1890-01-12", "julian": "1890-01-01"},
+            {},
+            "ANCHOR_CALENDAR_MISMATCH",
+        ),
+        ({"julian": "1890-01-01"}, {"anchor_state": "BLANK"}, "ANCHOR_NOT_PRESENT"),
+        (
+            {"julian": "1890-01-01"},
+            {"anchor_confidence": "UNCLEAR"},
+            "ANCHOR_UNCLEAR",
+        ),
+        (
+            {"julian": "1890-01-01"},
+            {"anchor_confidence": ""},
+            "ANCHOR_CONFIDENCE_UNSUPPORTED",
+        ),
+    ],
+)
+def test_relative_date_anchor_refusals_are_machine_readable(anchor, kwargs, reason) -> None:
+    report = resolve_relative_date_phrase("сего числа", anchor, **kwargs)
+
+    assert report["status"] == "UNRESOLVED"
+    assert report["reason"] == reason
+    assert report["resolved_value"] is None
+    assert isinstance(report["details"], list)
+
+
+def test_inconsistent_dual_anchor_reports_both_repairs_and_selects_neither() -> None:
+    report = resolve_relative_date_phrase(
+        "вчерашняго числа",
+        {"gregorian": "1890-01-12", "julian": "1890-01-01"},
+    )
+
+    assert report["reason"] == "ANCHOR_CALENDAR_MISMATCH"
+    assert report["anchor"] == {
+        "gregorian": "1890-01-12",
+        "julian": "1890-01-01",
+    }
+    assert report["details"] == [
+        "julian anchor converts to gregorian 1890-01-13",
+        "gregorian anchor converts to julian 1889-12-31",
+        "neither anchor side was selected",
+    ]
+
+
+def test_previous_day_outside_supported_year_range_is_unresolved() -> None:
+    report = resolve_relative_date_phrase(
+        "вчерашняго числа",
+        {"gregorian": "0001-01-01"},
+    )
+
+    assert report["status"] == "UNRESOLVED"
+    assert report["reason"] == "RESULT_OUT_OF_RANGE"
 
 
 def test_unclear_dates_are_not_mechanically_decided() -> None:

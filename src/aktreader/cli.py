@@ -47,7 +47,11 @@ from aktreader.labels import LabelValidationError, load_reader_label
 from aktreader.local_reader import LocalReader, LocalReaderError
 from aktreader.prompt import verify_reader_prompt
 from aktreader.schema import validate_instance
-from aktreader.validators.dates import convert_civil_date, validate_dates
+from aktreader.validators.dates import (
+    convert_civil_date,
+    resolve_relative_date_phrase,
+    validate_dates,
+)
 from aktreader.validators.formula import validate_formula_positions
 from aktreader.variant_batch import build_variant_batch, verify_variant_batch_artifact
 from aktreader.variant_lexicon import load_variant_lexicon
@@ -196,6 +200,29 @@ def build_parser() -> argparse.ArgumentParser:
         required=True,
         choices=("julian", "gregorian"),
         help="calendar used by the input date",
+    )
+
+    date_resolve = subparsers.add_parser(
+        "date-resolve-relative",
+        help="resolve an attested Russian relative-date phrase from explicit calendar anchors",
+    )
+    date_resolve.add_argument(
+        "phrase",
+        help="literal field-level phrase; quote text containing spaces",
+    )
+    date_resolve.add_argument("--julian", help="normalized Julian registration date")
+    date_resolve.add_argument("--gregorian", help="normalized Gregorian registration date")
+    date_resolve.add_argument(
+        "--anchor-state",
+        default="PRESENT",
+        choices=("PRESENT", "ABSENT_ON_FORM", "BLANK", "STATED_UNKNOWN", "ILLEGIBLE"),
+        help="registration-date observation state",
+    )
+    date_resolve.add_argument(
+        "--anchor-confidence",
+        default="PROBABLE",
+        choices=("PROBABLE", "UNCLEAR"),
+        help="registration-date confidence",
     )
 
     variant_key = subparsers.add_parser(
@@ -697,6 +724,25 @@ def _command_date_convert(args: argparse.Namespace) -> int:
     return 0
 
 
+def _command_date_resolve_relative(args: argparse.Namespace) -> int:
+    anchor = {
+        calendar: value
+        for calendar, value in (
+            ("julian", args.julian),
+            ("gregorian", args.gregorian),
+        )
+        if value is not None
+    }
+    report = resolve_relative_date_phrase(
+        args.phrase,
+        anchor or None,
+        anchor_state=args.anchor_state,
+        anchor_confidence=args.anchor_confidence,
+    )
+    _emit_json(report)
+    return 0 if report["status"] == "RESOLVED" else 1
+
+
 def _command_variant_key(args: argparse.Namespace) -> int:
     results = [
         {"input": name, "codes": list(daitch_mokotoff_codes(name))}
@@ -836,6 +882,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         "adjudicate": _command_adjudicate,
         "eval": _command_eval,
         "date-convert": _command_date_convert,
+        "date-resolve-relative": _command_date_resolve_relative,
         "variant-key": _command_variant_key,
         "variant-propose": _command_variant_propose,
         "variant-batch": _command_variant_batch,

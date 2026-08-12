@@ -80,11 +80,16 @@ Exact Julian/Gregorian conversion is available without a scan or model:
 
 ```powershell
 .\.venv\Scripts\aktreader.exe date-convert 1900-02-29 --from-calendar julian
+.\.venv\Scripts\aktreader.exe date-resolve-relative "вчерашняго числа" `
+  --julian 1890-02-07 `
+  --gregorian 1890-02-19
 ```
 
 The date validators reject malformed normalized values and compare dual dates as exact civil
 days, including the Julian leap-day transition in 1900. They do not infer that a second date was
-physically written. See [civil-date conversion and validation](docs/date-validation.md).
+physically written. The relative resolver handles only two source-attested Russian phrase
+families and refuses uncertain anchors. See
+[civil-date conversion and validation](docs/date-validation.md).
 
 The P4 name-retrieval tools are also available without scans or a model:
 

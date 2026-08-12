@@ -54,8 +54,58 @@ quietly pass as a validated date.
 
 Relative source phrases remain literal evidence. For example, `вчерашняго числа` (“yesterday”)
 may be resolved only when the registration date is usable; the normalized event date carries the
-resolved ISO value while `original_script` retains the phrase. This module does not parse Russian
-or Polish number-words and does not guess through an unclear anchor date.
+resolved ISO value while `original_script` retains the phrase. The narrow resolver below does not
+parse Russian or Polish number-words and does not guess through an unclear anchor date.
+
+## Resolve an attested relative phrase
+
+`date-resolve-relative` recognizes two exact, start-anchored historical phrase families:
+
+| Literal prefix | Family | Operation |
+| --- | --- | --- |
+| `сего числа` | `SAME_DAY` | Keep the anchor civil day |
+| `вчерашняго числа` | `PREVIOUS_DAY` | Subtract one civil day |
+
+Field-level text after that exact prefix is preserved but not interpreted. Thus
+`сего числа въ пять часовъ утра` can resolve the date, while the utility does not turn the
+Russian time clause into `05:00`.
+
+Supply at least one explicit calendar anchor:
+
+```powershell
+aktreader date-resolve-relative "вчерашняго числа" `
+  --julian 1890-02-07 `
+  --gregorian 1890-02-19
+```
+
+A resolved report exits 0 and returns the literal phrase unchanged, `offset_days`, normalized
+anchor dates, and a `resolved_value` marked `resolved_from_relative_phrase`. A refusal exits 1
+but still emits JSON on stdout. Stable refusal reasons are:
+
+| Reason | Meaning |
+| --- | --- |
+| `UNSUPPORTED_PHRASE` | The supplied field does not begin with one of the two exact forms. |
+| `ANCHOR_MISSING` | No explicit registration anchor was supplied. |
+| `ANCHOR_NOT_PRESENT` | The registration observation state is not `PRESENT`. |
+| `ANCHOR_UNCLEAR` | The registration confidence is `UNCLEAR`. |
+| `ANCHOR_CONFIDENCE_UNSUPPORTED` | The confidence state is not usable under this contract. |
+| `ANCHOR_CALENDAR_UNSPECIFIED` | A scalar or generic `date` was supplied without naming its calendar. |
+| `ANCHOR_INVALID` | A declared date is malformed, timed, or mixes generic and explicit calendar forms. |
+| `ANCHOR_CALENDAR_MISMATCH` | Supplied Julian and Gregorian anchors identify different civil days. |
+| `RESULT_OUT_OF_RANGE` | The shifted date falls outside supported four-digit civil years. |
+
+Anchor dates must be exact `YYYY-MM-DD` values; registration times are irrelevant to the event
+day and are not silently discarded. A consistent dual anchor resolves both calendars. An
+inconsistent pair reports both counterfactual conversions and selects neither. Near-matches,
+modernized spelling, uncertain bracketed text, line-break dehyphenation, Polish forms, and
+written number-words are unsupported rather than fuzzily normalized.
+
+The committed fixtures
+[`serock-1890-death-4`](../labels/readerB/serock-1890-death-4.json) and
+[`serock-1890-death-16`](../labels/readerA/serock-1890-death-16.json) exercise the positive and
+unclear-anchor paths respectively. A corpus regression also replays all 19 currently usable
+top-level Reader B relative-date fixtures and reproduces their normalized calendar values. The
+frozen labels remain unchanged.
 
 ## Exact dual-calendar check
 

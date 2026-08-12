@@ -14,6 +14,15 @@ from aktreader.validators.support import observations_of, record_id_of
 CALENDARS = ("gregorian", "julian")
 _DATE_FIELDS = ("registration_date", "event_date")
 _ISO_DATE = re.compile(r"^(?P<year>[0-9]{4})-(?P<month>[0-9]{2})-(?P<day>[0-9]{2})(?P<suffix>.*)$")
+_RELATIVE_PHRASES = (
+    (re.compile(r"^сего числа(?:$|(?=[\s,.;:—]))"), "SAME_DAY", 0),
+    (re.compile(r"^вчерашняго числа(?:$|(?=[\s,.;:—]))"), "PREVIOUS_DAY", -1),
+)
+_RELATIVE_DATE_WARNING = (
+    "Relative-date arithmetic does not replace the literal phrase or establish an uncertain "
+    "anchor; preserve both and verify against the act."
+)
+_USABLE_ANCHOR_CONFIDENCE = frozenset({"PROBABLE", "CONFIDENT", "CONFIDENT_ELIGIBLE"})
 
 
 class CivilDateError(ValueError):
@@ -152,6 +161,196 @@ def convert_civil_date(value: str, *, from_calendar: str) -> dict[str, object]:
             "preserve the literal source and mark derived dates explicitly."
         ),
     }
+
+
+def _relative_phrase_spec(literal_phrase: Any) -> tuple[str, int] | None:
+    if not isinstance(literal_phrase, str):
+        return None
+    for pattern, family, offset_days in _RELATIVE_PHRASES:
+        if pattern.match(literal_phrase):
+            return family, offset_days
+    return None
+
+
+def _relative_report(
+    *,
+    literal_phrase: Any,
+    phrase_family: str | None,
+    offset_days: int | None,
+    anchor: Mapping[str, str] | None,
+    resolved_value: Mapping[str, Any] | None,
+    reason: str | None,
+    details: tuple[str, ...] = (),
+) -> dict[str, object]:
+    return {
+        "status": "RESOLVED" if reason is None else "UNRESOLVED",
+        "phrase_family": phrase_family,
+        "literal_phrase": literal_phrase,
+        "literal_phrase_unchanged": True,
+        "offset_days": offset_days,
+        "anchor": dict(anchor) if anchor is not None else None,
+        "resolved_value": dict(resolved_value) if resolved_value is not None else None,
+        "reason": reason,
+        "details": list(details),
+        "warning": _RELATIVE_DATE_WARNING,
+    }
+
+
+def _date_for_day_number(day_number: int, calendar: str) -> CivilDate:
+    result = (
+        _day_number_to_gregorian(day_number)
+        if calendar == "gregorian"
+        else _day_number_to_julian(day_number)
+    )
+    return _validate_civil_date(result, calendar)
+
+
+def resolve_relative_date_phrase(
+    literal_phrase: Any,
+    registration_value: Any,
+    *,
+    anchor_state: str = "PRESENT",
+    anchor_confidence: str = "PROBABLE",
+) -> dict[str, object]:
+    """Resolve two attested Russian relative-date families from an explicit usable anchor."""
+
+    phrase_spec = _relative_phrase_spec(literal_phrase)
+    if phrase_spec is None:
+        return _relative_report(
+            literal_phrase=literal_phrase,
+            phrase_family=None,
+            offset_days=None,
+            anchor=None,
+            resolved_value=None,
+            reason="UNSUPPORTED_PHRASE",
+        )
+    phrase_family, offset_days = phrase_spec
+    common = {
+        "literal_phrase": literal_phrase,
+        "phrase_family": phrase_family,
+        "offset_days": offset_days,
+        "anchor": None,
+        "resolved_value": None,
+    }
+    if anchor_state != "PRESENT":
+        return _relative_report(
+            **common,
+            reason="ANCHOR_NOT_PRESENT",
+            details=(f"anchor observation_state is {anchor_state!r}",),
+        )
+    if anchor_confidence == "UNCLEAR":
+        return _relative_report(
+            **common,
+            reason="ANCHOR_UNCLEAR",
+            details=("anchor confidence is UNCLEAR",),
+        )
+    if anchor_confidence not in _USABLE_ANCHOR_CONFIDENCE:
+        return _relative_report(
+            **common,
+            reason="ANCHOR_CONFIDENCE_UNSUPPORTED",
+            details=(f"anchor confidence is {anchor_confidence!r}",),
+        )
+    if registration_value is None or registration_value == {}:
+        return _relative_report(**common, reason="ANCHOR_MISSING")
+    if not isinstance(registration_value, Mapping):
+        reason = (
+            "ANCHOR_CALENDAR_UNSPECIFIED"
+            if isinstance(registration_value, str)
+            else "ANCHOR_INVALID"
+        )
+        return _relative_report(
+            **common,
+            reason=reason,
+            details=("anchor must declare a julian or gregorian calendar",),
+        )
+
+    calendar_keys = [calendar for calendar in CALENDARS if calendar in registration_value]
+    if not calendar_keys:
+        reason = "ANCHOR_CALENDAR_UNSPECIFIED" if "date" in registration_value else "ANCHOR_MISSING"
+        return _relative_report(
+            **common,
+            reason=reason,
+            details=("anchor must declare a julian or gregorian calendar",),
+        )
+    if "date" in registration_value:
+        return _relative_report(
+            **common,
+            reason="ANCHOR_INVALID",
+            details=("generic date cannot be combined with explicit calendar anchors",),
+        )
+
+    parsed: dict[str, CivilDate] = {}
+    errors: list[str] = []
+    for calendar in calendar_keys:
+        try:
+            raw_value = registration_value[calendar]
+            parsed_value = parse_civil_date(
+                raw_value,
+                calendar=calendar,
+            )
+            if raw_value != parsed_value.isoformat():
+                raise CivilDateError("anchor must be an exact YYYY-MM-DD without a time")
+            parsed[calendar] = parsed_value
+        except CivilDateError as error:
+            errors.append(f"{calendar}: {error}")
+    if errors:
+        return _relative_report(
+            **common,
+            reason="ANCHOR_INVALID",
+            details=tuple(errors),
+        )
+
+    normalized_anchor = {
+        calendar: parsed[calendar].isoformat() for calendar in CALENDARS if calendar in parsed
+    }
+    if len(parsed) == 2:
+        gregorian_day = _civil_date_to_day_number(parsed["gregorian"], "gregorian")
+        julian_day = _civil_date_to_day_number(parsed["julian"], "julian")
+        if gregorian_day != julian_day:
+            expected_gregorian = _day_number_to_gregorian(julian_day).isoformat()
+            expected_julian = _day_number_to_julian(gregorian_day).isoformat()
+            return _relative_report(
+                literal_phrase=literal_phrase,
+                phrase_family=phrase_family,
+                offset_days=offset_days,
+                anchor=normalized_anchor,
+                resolved_value=None,
+                reason="ANCHOR_CALENDAR_MISMATCH",
+                details=(
+                    f"julian anchor converts to gregorian {expected_gregorian}",
+                    f"gregorian anchor converts to julian {expected_julian}",
+                    "neither anchor side was selected",
+                ),
+            )
+
+    source_calendar = calendar_keys[0]
+    source_day = _civil_date_to_day_number(parsed[source_calendar], source_calendar)
+    target_day = source_day + offset_days
+    try:
+        resolved = {
+            calendar: _date_for_day_number(target_day, calendar).isoformat()
+            for calendar in CALENDARS
+            if calendar in parsed
+        }
+    except CivilDateError as error:
+        return _relative_report(
+            literal_phrase=literal_phrase,
+            phrase_family=phrase_family,
+            offset_days=offset_days,
+            anchor=normalized_anchor,
+            resolved_value=None,
+            reason="RESULT_OUT_OF_RANGE",
+            details=(str(error),),
+        )
+    resolved["resolved_from_relative_phrase"] = True
+    return _relative_report(
+        literal_phrase=literal_phrase,
+        phrase_family=phrase_family,
+        offset_days=offset_days,
+        anchor=normalized_anchor,
+        resolved_value=resolved,
+        reason=None,
+    )
 
 
 def _calendar_dates(value: Any) -> dict[str, CivilDate]:

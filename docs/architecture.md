@@ -82,7 +82,9 @@ marriage-specific banns, permissions, and rabbi fields.
 Normalized dates are validated independently of their literal-script evidence. The
 [`date-convert`](date-validation.md) utility uses exact Julian/Gregorian civil-day conversion;
 the validator flags malformed confident date values, impossible dual-calendar pairs, and a
-registration that predates its event without rewriting any field.
+registration that predates its event without rewriting any field. `date-resolve-relative`
+derives same-day or previous-day values only from explicit, usable calendar anchors and always
+returns the literal phrase unchanged.
 
 ## Local Reader boundary
 

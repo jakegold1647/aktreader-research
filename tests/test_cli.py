@@ -69,6 +69,57 @@ def test_date_convert_refuses_to_silently_drop_a_time(capsys) -> None:
     assert "without a time" in capsys.readouterr().err
 
 
+def test_relative_date_cli_resolves_consistent_dual_anchor(capsys) -> None:
+    exit_code = main(
+        [
+            "date-resolve-relative",
+            "вчерашняго числа",
+            "--julian",
+            "1900-03-01",
+            "--gregorian",
+            "1900-03-14",
+        ]
+    )
+
+    payload = json.loads(capsys.readouterr().out)
+    assert exit_code == 0
+    assert payload["status"] == "RESOLVED"
+    assert payload["phrase_family"] == "PREVIOUS_DAY"
+    assert payload["resolved_value"] == {
+        "gregorian": "1900-03-13",
+        "julian": "1900-02-29",
+        "resolved_from_relative_phrase": True,
+    }
+
+
+def test_relative_date_cli_returns_json_and_exit_one_for_refusal(capsys) -> None:
+    exit_code = main(
+        [
+            "date-resolve-relative",
+            "сего числа",
+            "--julian",
+            "1890-01-01",
+            "--anchor-confidence",
+            "UNCLEAR",
+        ]
+    )
+
+    captured = capsys.readouterr()
+    payload = json.loads(captured.out)
+    assert exit_code == 1
+    assert payload["status"] == "UNRESOLVED"
+    assert payload["reason"] == "ANCHOR_UNCLEAR"
+    assert captured.err == ""
+
+
+def test_relative_date_cli_missing_anchor_fails_closed(capsys) -> None:
+    exit_code = main(["date-resolve-relative", "вчерашняго числа"])
+
+    payload = json.loads(capsys.readouterr().out)
+    assert exit_code == 1
+    assert payload["reason"] == "ANCHOR_MISSING"
+
+
 def test_variant_key_is_machine_readable_and_marks_collisions_as_proposals(capsys) -> None:
     exit_code = main(["variant-key", "Goldsztejn", "Goldsztajn"])
 

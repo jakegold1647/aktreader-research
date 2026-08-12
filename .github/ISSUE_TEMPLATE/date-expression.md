@@ -6,7 +6,8 @@ labels: documentation
 ---
 
 Read [`docs/date-validation.md`](../../docs/date-validation.md) first. The current module
-validates normalized dates; it does not claim to parse arbitrary Russian or Polish number-words.
+validates normalized dates and resolves two exact Russian relative forms; it does not claim to
+parse arbitrary Russian or Polish number-words.
 
 ## Literal expression
 
