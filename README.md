@@ -85,11 +85,16 @@ The P4 name-retrieval tools are also available without scans or a model:
 .\.venv\Scripts\aktreader.exe variant-batch `
   --input examples\variant-batch.example.csv `
   --output variant-proposals.json
+.\.venv\Scripts\aktreader.exe variant-batch-verify `
+  --artifact variant-proposals.json `
+  --input examples\variant-batch.example.csv
 ```
 
-All variant commands emit `PROPOSAL_ONLY`. `variant-propose` and `variant-batch` keep documented
-forms, curated variants, phonetic candidates, and explicit false friends separate; a similarity
-is never proof of identity. See [the variant bridge](docs/variant-key.md).
+Proposal-producing variant commands emit `PROPOSAL_ONLY`. `variant-propose` and `variant-batch`
+keep documented forms, curated variants, phonetic candidates, and explicit false friends
+separate; a similarity is never proof of identity. `variant-batch-verify` proves that a stored
+batch is schema-valid and exactly reproducible from the supplied CSV and current source
+lexicons. See [the variant bridge](docs/variant-key.md).
 
 ## Contributing
 

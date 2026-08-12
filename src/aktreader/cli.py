@@ -49,7 +49,7 @@ from aktreader.prompt import verify_reader_prompt
 from aktreader.schema import validate_instance
 from aktreader.validators.dates import validate_dates
 from aktreader.validators.formula import validate_formula_positions
-from aktreader.variant_batch import build_variant_batch
+from aktreader.variant_batch import build_variant_batch, verify_variant_batch_artifact
 from aktreader.variant_lexicon import load_variant_lexicon
 from aktreader.variants import daitch_mokotoff_codes
 
@@ -252,6 +252,25 @@ def build_parser() -> argparse.ArgumentParser:
         "--replace-existing",
         action="store_true",
         help="explicitly permit atomic replacement of an existing output",
+    )
+
+    variant_batch_verify = subparsers.add_parser(
+        "variant-batch-verify",
+        help="verify that a variant batch artifact exactly reproduces from its sources",
+    )
+    variant_batch_verify.add_argument("--artifact", required=True, type=Path)
+    variant_batch_verify.add_argument("--input", required=True, type=Path)
+    variant_batch_verify.add_argument(
+        "--lexicon",
+        type=Path,
+        default=PROJECT_ROOT / "resources" / "serock_name_lexicon.csv",
+        help="source-attributed machine lexicon CSV",
+    )
+    variant_batch_verify.add_argument(
+        "--relations",
+        type=Path,
+        default=PROJECT_ROOT / "resources" / "serock_variant_relations.csv",
+        help="explicit attested-variant and ruled-out relationship CSV",
     )
     return parser
 
@@ -758,6 +777,33 @@ def _command_variant_batch(args: argparse.Namespace) -> int:
     return 0
 
 
+def _command_variant_batch_verify(args: argparse.Namespace) -> int:
+    artifact_path = local_input_path(args.artifact, role="variant batch artifact")
+    input_path = local_input_path(args.input, role="variant batch input")
+    lexicon_path = local_input_path(args.lexicon, role="variant source lexicon")
+    relation_path = local_input_path(args.relations, role="variant relation lexicon")
+    schema_path = PROJECT_ROOT / "schemas" / "variant-batch-1.0.0.schema.json"
+    for role, path in (
+        ("variant batch artifact", artifact_path),
+        ("variant batch input", input_path),
+        ("variant source lexicon", lexicon_path),
+        ("variant relation lexicon", relation_path),
+        ("variant batch schema", schema_path),
+    ):
+        if not path.is_file():
+            raise CliConfigurationError(f"{role} is not a file: {path}")
+
+    report = verify_variant_batch_artifact(
+        artifact_path=artifact_path,
+        input_path=input_path,
+        lexicon_path=lexicon_path,
+        relations_path=relation_path,
+        schema_path=schema_path,
+    )
+    _emit_json(report)
+    return 0
+
+
 def main(argv: Sequence[str] | None = None) -> int:
     """Run one local-only CLI command with concise, non-secret error reporting."""
     parser = build_parser()
@@ -775,6 +821,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         "variant-key": _command_variant_key,
         "variant-propose": _command_variant_propose,
         "variant-batch": _command_variant_batch,
+        "variant-batch-verify": _command_variant_batch_verify,
     }
     if args.command is None:
         parser.print_help()

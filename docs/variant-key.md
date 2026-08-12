@@ -70,6 +70,27 @@ The output:
 Use `--no-phonetic` for documented and explicitly curated relationships only. The published
 sample is [`examples/variant-batch.example.csv`](../examples/variant-batch.example.csv).
 
+### Verify a stored batch
+
+The verifier checks a saved artifact against the bundled schema and then regenerates every
+proposal from the named CSV and source lexicons:
+
+```powershell
+aktreader variant-batch-verify `
+  --artifact variant-proposals.json `
+  --input examples\variant-batch.example.csv
+```
+
+A successful run emits `status: PASS` and `verification: EXACT_REPRODUCTION`, together with the
+artifact and schema hashes. The verifier reads `include_phonetic` from the artifact, so a caller
+cannot accidentally verify it under a different proposal mode. It rejects malformed JSON,
+duplicate keys, schema violations, changed source bytes, reordered rows or proposals, edited
+values, and files that change during verification. JSON whitespace and object-key order are not
+evidence-bearing and may differ.
+
+Verification never updates the artifact. It proves reproducibility from the exact supplied
+inputs; it does not promote any proposal into an identity claim.
+
 ## Raw phonetic keys
 
 `variant-key` exposes the Daitch–Mokotoff encoder directly:

@@ -22,12 +22,13 @@ needs no scan, no model, and no network.
 
 ## 1. The variant bridge (P4) — the best entry point
 
-**Current status:** three separately usable slices now ship. `variant-key`
+**Current status:** four separately usable slices now ship. `variant-key`
 generates branching Daitch–Mokotoff keys. `variant-propose` combines those keys
 with source-attributed forms, explicit variants, and ruled-out near-misses while
 preserving the literal query. `variant-batch` applies that contract to stable,
-typed CSV rows and emits a source-hashed, schema-valid artifact. See
-[the variant bridge](variant-key.md).
+typed CSV rows and emits a source-hashed, schema-valid artifact.
+`variant-batch-verify` independently regenerates and compares a stored artifact.
+See [the variant bridge](variant-key.md).
 
 **Why it matters:** `Goldsztejn` and `Goldstein` are the same family and will not
 match each other in a search index. This module is what makes a name found.

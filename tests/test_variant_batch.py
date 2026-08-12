@@ -11,6 +11,7 @@ from aktreader.variant_batch import (
     VariantBatchError,
     build_variant_batch,
     load_variant_batch_csv,
+    verify_variant_batch_artifact,
 )
 
 LEXICON = PROJECT_ROOT / "resources" / "serock_name_lexicon.csv"
@@ -35,6 +36,20 @@ def _build(path: Path, *, include_phonetic: bool = True) -> dict[str, object]:
 
 def _sha256(path: Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest()
+
+
+def _write_artifact(
+    path: Path,
+    source: Path,
+    *,
+    include_phonetic: bool = True,
+) -> dict[str, object]:
+    artifact = _build(source, include_phonetic=include_phonetic)
+    path.write_text(
+        json.dumps(artifact, ensure_ascii=False, sort_keys=True, indent=2),
+        encoding="utf-8",
+    )
+    return artifact
 
 
 def test_batch_artifact_is_schema_valid_ordered_and_source_hashed(tmp_path: Path) -> None:
@@ -259,3 +274,226 @@ def test_invalid_batch_leaves_no_partial_output(
     assert exit_code == 2
     assert "unsupported entity_type" in capsys.readouterr().err
     assert not output.exists()
+
+
+def test_verifier_accepts_exact_semantic_reproduction(tmp_path: Path) -> None:
+    source = _write_batch(tmp_path / "names.csv", "one,Kanarek,surname\n")
+    artifact_path = tmp_path / "proposals.json"
+    artifact = _write_artifact(artifact_path, source)
+    # Byte formatting is not evidence-bearing; JSON values and array positions are.
+    artifact_path.write_text(
+        json.dumps(artifact, ensure_ascii=False, separators=(",", ":")),
+        encoding="utf-8",
+    )
+
+    report = verify_variant_batch_artifact(
+        artifact_path=artifact_path,
+        input_path=source,
+        lexicon_path=LEXICON,
+        relations_path=RELATIONS,
+        schema_path=SCHEMA,
+    )
+
+    assert report["status"] == "PASS"
+    assert report["verification"] == "EXACT_REPRODUCTION"
+    assert report["artifact_sha256"] == _sha256(artifact_path)
+    assert report["schema_sha256"] == _sha256(SCHEMA)
+    assert report["row_count"] == 1
+
+
+def test_cli_verifies_no_phonetic_artifact_without_a_mode_override(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    source = _write_batch(tmp_path / "names.csv", "one,Goldstein,surname\n")
+    artifact_path = tmp_path / "proposals.json"
+    _write_artifact(artifact_path, source, include_phonetic=False)
+
+    exit_code = main(
+        [
+            "variant-batch-verify",
+            "--artifact",
+            str(artifact_path),
+            "--input",
+            str(source),
+        ]
+    )
+
+    report = json.loads(capsys.readouterr().out)
+    assert exit_code == 0
+    assert report["status"] == "PASS"
+    assert report["include_phonetic"] is False
+    assert report["proposal_count"] == 0
+
+
+def test_verifier_rejects_schema_invalid_artifact(tmp_path: Path) -> None:
+    source = _write_batch(tmp_path / "names.csv", "one,Kanarek,surname\n")
+    artifact_path = tmp_path / "proposals.json"
+    artifact = _write_artifact(artifact_path, source)
+    artifact["row_count"] = 0
+    artifact_path.write_text(json.dumps(artifact), encoding="utf-8")
+
+    with pytest.raises(ValueError, match="schema validation failed"):
+        verify_variant_batch_artifact(
+            artifact_path=artifact_path,
+            input_path=source,
+            lexicon_path=LEXICON,
+            relations_path=RELATIONS,
+            schema_path=SCHEMA,
+        )
+
+
+def test_verifier_rejects_schema_valid_content_drift_at_a_json_pointer(
+    tmp_path: Path,
+) -> None:
+    source = _write_batch(tmp_path / "names.csv", "one,Kanarek,surname\n")
+    artifact_path = tmp_path / "proposals.json"
+    artifact = _write_artifact(artifact_path, source)
+    artifact["warning"] = "Still proposal-only, but not the generated warning."
+    artifact_path.write_text(json.dumps(artifact), encoding="utf-8")
+
+    with pytest.raises(VariantBatchError, match=r"supplied sources at /warning$"):
+        verify_variant_batch_artifact(
+            artifact_path=artifact_path,
+            input_path=source,
+            lexicon_path=LEXICON,
+            relations_path=RELATIONS,
+            schema_path=SCHEMA,
+        )
+
+
+def test_verifier_rejects_reordered_rows(tmp_path: Path) -> None:
+    source = _write_batch(
+        tmp_path / "names.csv",
+        "one,Kanarek,surname\ntwo,Serock,town\n",
+    )
+    artifact_path = tmp_path / "proposals.json"
+    artifact = _write_artifact(artifact_path, source)
+    artifact["rows"].reverse()
+    artifact_path.write_text(json.dumps(artifact), encoding="utf-8")
+
+    with pytest.raises(VariantBatchError, match=r"supplied sources at /rows/0/"):
+        verify_variant_batch_artifact(
+            artifact_path=artifact_path,
+            input_path=source,
+            lexicon_path=LEXICON,
+            relations_path=RELATIONS,
+            schema_path=SCHEMA,
+        )
+
+
+def test_verifier_rejects_reordered_proposals(tmp_path: Path) -> None:
+    source = _write_batch(tmp_path / "names.csv", "one,Kanarek,surname\n")
+    artifact_path = tmp_path / "proposals.json"
+    artifact = _write_artifact(artifact_path, source)
+    proposals = artifact["rows"][0]["proposals"]
+    assert len(proposals) > 1
+    proposals.reverse()
+    artifact_path.write_text(json.dumps(artifact), encoding="utf-8")
+
+    with pytest.raises(
+        VariantBatchError,
+        match=r"supplied sources at /rows/0/proposals/0/",
+    ):
+        verify_variant_batch_artifact(
+            artifact_path=artifact_path,
+            input_path=source,
+            lexicon_path=LEXICON,
+            relations_path=RELATIONS,
+            schema_path=SCHEMA,
+        )
+
+
+def test_verifier_rejects_changed_source_input(tmp_path: Path) -> None:
+    source = _write_batch(tmp_path / "names.csv", "one,Kanarek,surname\n")
+    artifact_path = tmp_path / "proposals.json"
+    _write_artifact(artifact_path, source)
+    source.write_text(
+        "id,query,entity_type\none,Kanarek,surname\ntwo,Serock,town\n",
+        encoding="utf-8",
+    )
+
+    with pytest.raises(VariantBatchError, match=r"supplied sources at /input_sha256$"):
+        verify_variant_batch_artifact(
+            artifact_path=artifact_path,
+            input_path=source,
+            lexicon_path=LEXICON,
+            relations_path=RELATIONS,
+            schema_path=SCHEMA,
+        )
+
+
+@pytest.mark.parametrize(
+    ("contents", "message"),
+    [
+        (b"\xff", "artifact is not UTF-8"),
+        (b"{", "artifact is not valid JSON"),
+        (b"[]", "artifact must be a JSON object"),
+        (b'{"value": NaN}', "non-standard JSON number"),
+    ],
+)
+def test_verifier_rejects_non_strict_json(
+    tmp_path: Path,
+    contents: bytes,
+    message: str,
+) -> None:
+    source = _write_batch(tmp_path / "names.csv", "one,Kanarek,surname\n")
+    artifact_path = tmp_path / "proposals.json"
+    artifact_path.write_bytes(contents)
+
+    with pytest.raises(VariantBatchError, match=message):
+        verify_variant_batch_artifact(
+            artifact_path=artifact_path,
+            input_path=source,
+            lexicon_path=LEXICON,
+            relations_path=RELATIONS,
+            schema_path=SCHEMA,
+        )
+
+
+def test_verifier_rejects_duplicate_artifact_keys(tmp_path: Path) -> None:
+    source = _write_batch(tmp_path / "names.csv", "one,Kanarek,surname\n")
+    artifact_path = tmp_path / "proposals.json"
+    _write_artifact(artifact_path, source)
+    rendered = artifact_path.read_text(encoding="utf-8")
+    artifact_path.write_text(
+        rendered.replace(
+            '"status": "PROPOSAL_ONLY",',
+            '"status": "PROPOSAL_ONLY",\n  "status": "PROPOSAL_ONLY",',
+            1,
+        ),
+        encoding="utf-8",
+    )
+
+    with pytest.raises(VariantBatchError, match="duplicate JSON key"):
+        verify_variant_batch_artifact(
+            artifact_path=artifact_path,
+            input_path=source,
+            lexicon_path=LEXICON,
+            relations_path=RELATIONS,
+            schema_path=SCHEMA,
+        )
+
+
+def test_verifier_rejects_artifact_drift_during_verification(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    source = _write_batch(tmp_path / "names.csv", "one,Kanarek,surname\n")
+    artifact_path = tmp_path / "proposals.json"
+    _write_artifact(artifact_path, source)
+    real_sha256 = variant_batch_module._sha256_path
+
+    def drifting_hash(path: Path) -> str:
+        if path == artifact_path:
+            return "0" * 64
+        return real_sha256(path)
+
+    monkeypatch.setattr(variant_batch_module, "_sha256_path", drifting_hash)
+
+    with pytest.raises(VariantBatchError, match="artifact changed while"):
+        verify_variant_batch_artifact(
+            artifact_path=artifact_path,
+            input_path=source,
+            lexicon_path=LEXICON,
+            relations_path=RELATIONS,
+            schema_path=SCHEMA,
+        )
