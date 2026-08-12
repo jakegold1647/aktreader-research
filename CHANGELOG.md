@@ -17,6 +17,9 @@ Development version: `0.3.0.dev0`.
   still required.
 - `doctor` and `--version` now identify the Evidence Lab, its repository, and its source-only
   packaging status explicitly.
+- `doctor` now verifies the `aktreader-research` checkout identity and 22 public assets before
+  reporting the source-relative reproducibility paths as available. Alternate roots are
+  diagnostic only, and code-only wheels fail closed.
 - Existing pre-rename editable environments should be recreated so stale `aktreader`
   distribution metadata does not survive beside `aktreader-research`.
 

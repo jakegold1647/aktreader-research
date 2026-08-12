@@ -16,7 +16,10 @@ From a clean clone with only the development dependencies installed (`pip instal
 
 1. The full test suite: `python -m pytest`.
 2. Lint: `python -m ruff check .`.
-3. Environment report: `python -m aktreader doctor`.
+3. Environment report: `python -m aktreader doctor`. It must identify the
+   `aktreader-research` checkout, report all 22 public contract assets present, and exit 0. A
+   code-only wheel or sibling Application checkout exits nonzero instead of claiming that the
+   Lab's source-relative reproducibility paths are available.
 4. Frozen-prompt verification: `python -m aktreader prompt-verify --root .` must report `PASS` with the digest pinned in `prompts/manifest.json` and `prompts/reader_prompt.sha256`.
 5. Label validation and grounding surveys over the committed frozen labels, for example `python -m aktreader label-validate --report labels/readerA/serock-1877-birth-1.json` (`--report` is a flag; the labels are positional and more than one may be given). Expect exit 0 and `"status": "PASS"` — the canonical wave-006 Reader A labels return `GROUNDED` for all ten acts. Frozen pre-contract labels and the superseded July wave-006 pass (`labels/readerA/superseded/wave006-july-pass-ruled-compromised/`) still fail the v1.4 gate by design; for those, exit code 2 is the documented behavior.
 6. P4 variant batches from the committed public lexicons: build one with `python -m aktreader variant-batch --input examples/variant-batch.example.csv --output variant-proposals.json`, then prove exact content reproduction with `python -m aktreader variant-batch-verify --artifact variant-proposals.json --input examples/variant-batch.example.csv`.

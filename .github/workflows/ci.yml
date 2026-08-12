@@ -20,6 +20,8 @@ jobs:
           python-version: ${{ matrix.python-version }}
       - name: Install
         run: python -m pip install -e ".[dev]"
+      - name: Smoke check the Evidence Lab identity
+        run: python -m aktreader doctor --json
       - name: Lint
         run: python -m ruff check .
       - name: Test

@@ -90,6 +90,15 @@ python3 -m venv .venv
 .venv/bin/aktreader-lab doctor
 ```
 
+`doctor` exits successfully only when the running command resolves this `aktreader-research`
+source checkout and all 22 public assets needed by the scan-free reproducibility paths are
+present. Its report distinguishes the Evidence Lab from the `aktreader-app` checkout and names
+every missing schema, prompt binding, lexicon, corpus, label collection, or example input.
+`doctor --inspect-root PATH` can diagnose another checkout, but does not reconfigure the running
+command. It therefore cannot make a code-only wheel claim that its repository assets are present.
+Model weights, runtime binaries, source scans, and private review packets remain outside this
+readiness check.
+
 The toolkit is intentionally local-first. Model binaries and weights are supplied and pinned by the researcher; AKT Reader does not download or contact models on its own.
 
 Exact Julian/Gregorian conversion is available without a scan or model:
