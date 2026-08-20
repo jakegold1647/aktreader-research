@@ -2,6 +2,7 @@ canonical_form,entity_type,form,relation,script,source_tier,source_ref
 Goldsztejn,surname,Goldsztajn,ATTESTED_VARIANT,latin,3,1947 decree (INF)
 Frydman,surname,Fridman,ATTESTED_VARIANT,latin,4,SURV survivor list
 Sterdyner,surname,Sterdiner,ATTESTED_VARIANT,latin,5,YZK p489 (glazier)
+Lewinsztejn,surname,Lewinstein,ATTESTED_VARIANT,latin,5,YZK (Serocker Rabbi Yosef Lewinstein)
 Jarzabek,surname,IAZHOMBEK,ATTESTED_VARIANT,latin,3,ONO transliteration round-trip
 Kanarek,surname,KANALEK,RULED_OUT,latin,4,SURV near-miss (not Kanarek; b.1927 Pruszków)
 Herszfeld,surname,Gersz Weksler,RULED_OUT,latin,1,W2 act6 PHANTOM (line-break artifact)

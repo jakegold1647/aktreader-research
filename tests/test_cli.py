@@ -365,6 +365,32 @@ def test_variant_propose_preserves_input_and_negative_evidence(capsys) -> None:
     assert by_form["Kania"]["relation"] == "DOCUMENTED_FORM"
 
 
+@pytest.mark.parametrize(
+    ("literal_input", "expected_form"),
+    [
+        ("Lewinsztejn", "Lewinstein"),
+        ("Lewinstein", "Lewinsztejn"),
+    ],
+)
+def test_variant_propose_returns_the_source_backed_lewin_relation_in_both_directions(
+    literal_input: str, expected_form: str, capsys
+) -> None:
+    exit_code = main(["variant-propose", literal_input, "--kind", "surname", "--no-phonetic"])
+
+    payload = json.loads(capsys.readouterr().out)
+    matches = [item for item in payload["proposals"] if item["form"] == expected_form]
+
+    assert exit_code == 0
+    assert payload["literal_input"] == literal_input
+    assert payload["literal_input_unchanged"] is True
+    assert payload["query_codes"] == []
+    assert len(matches) == 1
+    assert matches[0]["relation"] == "ATTESTED_VARIANT"
+    assert matches[0]["evidence"] == [
+        {"source_tier": "5", "source_ref": "YZK (Serocker Rabbi Yosef Lewinstein)"}
+    ]
+
+
 def test_json_emitter_falls_back_to_ascii_escapes_on_legacy_console() -> None:
     buffer = io.BytesIO()
     stream = io.TextIOWrapper(buffer, encoding="ascii")

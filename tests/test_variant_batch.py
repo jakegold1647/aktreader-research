@@ -135,6 +135,21 @@ def test_no_phonetic_mode_suppresses_unknown_soundalikes(tmp_path: Path) -> None
     assert documented_only["include_phonetic"] is False
 
 
+def test_source_backed_lewin_relation_survives_no_phonetic_batch_mode(tmp_path: Path) -> None:
+    source = _write_batch(tmp_path / "names.csv", "one,Lewinstein,surname\n")
+
+    artifact = _build(source, include_phonetic=False)
+
+    validate_instance(artifact, SCHEMA)
+    row = artifact["rows"][0]
+    matches = [proposal for proposal in row["proposals"] if proposal["form"] == "Lewinsztejn"]
+    assert artifact["include_phonetic"] is False
+    assert artifact["relation_counts"]["ATTESTED_VARIANT"] == 1
+    assert len(matches) == 1
+    assert matches[0]["relation"] == "ATTESTED_VARIANT"
+    assert matches[0]["shared_codes"] == []
+
+
 @pytest.mark.parametrize(
     ("contents", "message"),
     [
