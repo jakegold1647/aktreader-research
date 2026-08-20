@@ -150,6 +150,24 @@ def test_parser_exposes_no_api_key_or_network_backend_options() -> None:
     assert "hosted" not in help_text
 
 
+def test_every_cli_command_is_named_in_public_documentation() -> None:
+    commands = next(
+        action.choices
+        for action in build_parser()._actions
+        if action.dest == "command"
+    )
+    documentation = "\n".join(
+        path.read_text(encoding="utf-8")
+        for path in sorted(
+            [*PROJECT_ROOT.glob("*.md"), *(PROJECT_ROOT / "docs").rglob("*.md")]
+        )
+    )
+
+    missing = {command for command in commands if command not in documentation}
+
+    assert missing == set()
+
+
 def test_date_convert_is_machine_readable_and_preserves_evidence_boundary(capsys) -> None:
     exit_code = main(["date-convert", "1900-02-29", "--from-calendar", "julian"])
 

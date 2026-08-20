@@ -108,6 +108,12 @@ fixture.
 
 The toolkit is intentionally local-first. Model binaries and weights are supplied and pinned by the researcher; AKT Reader does not download or contact models on its own.
 
+For an owner-provisioned one-record run, `reader-infer` is the explicit single-job path. It
+requires a checksum-pinned local Reader configuration, a local scan, and a metadata-only blind
+brief; it is not runnable from a clean clone without those owner-held inputs. See the
+[local model runbook](docs/local-model.md#single-job-inference) for the command and output
+contract. Manifest-driven evaluation runs should continue to use `batch-run`.
+
 Exact Julian/Gregorian conversion is available without a scan or model:
 
 ```powershell
