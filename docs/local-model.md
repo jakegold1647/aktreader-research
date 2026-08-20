@@ -186,6 +186,32 @@ The artifact and prompt hashes must match the actual inputs. Output-bearing keys
 `transcription`, `observations`, `mentions`, and `source_spans` are forbidden in the brief so a
 blind pass cannot accidentally receive another Reader's work.
 
+### Single-job inference
+
+Use `reader-infer` when validating one explicitly prepared job outside the checkpointed batch
+runner. All four paths must be local. The brief is the metadata-only `batch_brief` object for the
+scan, written as its own JSON file; do not pass the surrounding batch manifest or a prior Reader
+output.
+
+```powershell
+$readerConfig = '.\examples\p2-baseline.local-reader.json'
+$scan = 'E:\owner-local\serock-1890-death-1.jpg'
+$brief = 'E:\owner-local\serock-1890-death-1.reader-a.brief.json'
+$output = '.\runs\single\serock-1890-death-1.reader-a.json'
+
+.\.venv\Scripts\aktreader-lab.exe reader-infer `
+  --config $readerConfig `
+  --scan $scan `
+  --brief $brief `
+  --output $output
+```
+
+The command verifies the pinned runtime and model artifacts, checks the scan and brief boundary,
+and refuses to overwrite any input path. On success it writes the label JSON plus sibling
+`.stdout.txt` and `.stderr.txt` files, then reports the runtime and inference fingerprints. Keep
+those three files together as run evidence. Use `batch-run` for a manifest, checkpointing,
+retries, or more than one job.
+
 ## Reproducibility fingerprint
 
 Each successful inference persists the raw llama.cpp stdout and stderr beside the assembled

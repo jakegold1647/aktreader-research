@@ -28,6 +28,8 @@ Development version: `0.3.0.dev0`.
   diagnostic only.
 - Existing pre-rename editable environments should be recreated so stale `aktreader`
   distribution metadata does not survive beside `aktreader-research`.
+- The owner-only `reader-infer` path now has a public single-job runbook, and tests keep every
+  shipped CLI command represented in the documentation.
 
 ### Added
 
