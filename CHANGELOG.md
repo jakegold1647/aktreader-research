@@ -30,6 +30,8 @@ Development version: `0.3.0.dev0`.
   distribution metadata does not survive beside `aktreader-research`.
 - The owner-only `reader-infer` path now has a public single-job runbook, and tests keep every
   shipped CLI command represented in the documentation.
+- GitHub Actions now use the Node 24-based `checkout` and `setup-python` v7 releases instead of
+  deprecated Node 20 action majors.
 
 ### Added
 
