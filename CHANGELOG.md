@@ -31,6 +31,9 @@ Development version: `0.3.0.dev0`.
 
 ### Added
 
+- The source-backed `Lewinsztejn` / `Lewinstein` relation is now available to
+  `variant-propose` and `variant-batch` in both directions without relying on
+  phonetic matching.
 - A Linux/Windows CI smoke builds the wheel, installs it into a fresh environment, proves imports
   resolve from that environment, and runs `doctor`, `variant-propose`, and `date-audit` outside the
   source checkout.
